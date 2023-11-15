@@ -15,9 +15,13 @@
         <Tab Title="Бібліотека" Icon="list_solid.svg">
             <ShellContent ContentTemplate="{DataTemplate local:LibraryPage}" />
         </Tab>
+        <Tab Title="Налаштування" Icon="gear_solid.svg">
+            <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" />
+        </Tab>
     </TabBar>
 
     <ShellContent Title="Пошук" FlyoutIcon="magnifying_glass.png" ContentTemplate="{DataTemplate local:SearchPage}" />
     <ShellContent Title="Бібліотека" FlyoutIcon="list_solid_image.png" ContentTemplate="{DataTemplate local:LibraryPage}" />
+    <ShellContent Title="Налаштування" FlyoutIcon="gear_image.png" ContentTemplate="{DataTemplate local:SettingsPage}" />
 
 </Shell>
