@@ -15,6 +15,10 @@ namespace SoundScapes
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("Gotham-Black.ttf", "GothamBlack");
+                    fonts.AddFont("Gotham-Bold.ttf", "GothamBold");
+                    fonts.AddFont("GothamBook.ttf", "GothamBook");
+                    fonts.AddFont("GothamMedium.ttf", "GothamMedium");
                 });
 #if DEBUG
             builder.Logging.AddDebug();
