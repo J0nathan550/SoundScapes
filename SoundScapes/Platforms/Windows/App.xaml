@@ -7,12 +7,13 @@
     <Application.Resources>
 
         <DataTemplate x:Key="MauiAppTitleBarTemplate">
-            <Grid Background="#1C1C1C" Canvas.ZIndex="1" Height="32">
+            <!--<Border Style="{StaticResource TitleBarStyle}" VerticalAlignment="Stretch"/>-->
+            <Grid Background="#1C1C1C" Canvas.ZIndex="1" Height="32" VerticalAlignment="Stretch">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="32"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Image Source="soundscapes_icon.png"/>
+                <Image Margin="2" Source="soundscapes_icon.png"/>
                 <TextBlock Grid.Column="1" Text="Sound Scapes" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="5,0,0,2"/>
             </Grid>
         </DataTemplate>

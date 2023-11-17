@@ -4,24 +4,20 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:SoundScapes.Pages"
-    Shell.FlyoutBehavior="Flyout"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarIsVisible="True"
     FlyoutBackgroundColor="#1C1C1C"
     Title="SoundScapes">
 
     <TabBar>
-        <Tab Title="Пошук" Icon="magnifying_glass_solid.svg">
+        <Tab Title="Пошук" Icon="magnifying_glass.png">
             <ShellContent ContentTemplate="{DataTemplate local:SearchPage}" />
         </Tab>
-        <Tab Title="Бібліотека" Icon="list_solid.svg">
+        <Tab Title="Бібліотека" Icon="list_solid_image.png">
             <ShellContent ContentTemplate="{DataTemplate local:LibraryPage}" />
         </Tab>
-        <Tab Title="Налаштування" Icon="gear_solid.svg">
+        <Tab Title="Налаштування" Icon="gear_image.png">
             <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" />
         </Tab>
     </TabBar>
-
-    <ShellContent Title="Пошук" FlyoutIcon="magnifying_glass.png" ContentTemplate="{DataTemplate local:SearchPage}" />
-    <ShellContent Title="Бібліотека" FlyoutIcon="list_solid_image.png" ContentTemplate="{DataTemplate local:LibraryPage}" />
-    <ShellContent Title="Налаштування" FlyoutIcon="gear_image.png" ContentTemplate="{DataTemplate local:SettingsPage}" />
-
 </Shell>
