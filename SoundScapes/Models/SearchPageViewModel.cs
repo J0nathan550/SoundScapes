@@ -14,12 +14,12 @@ namespace SoundScapes.Models
         [ObservableProperty]
         private string searchQuery = string.Empty;
         [ObservableProperty]
-        private List<TrackSearchResult> tracksList = new();
+        private List<TrackSearchResult> tracksList = [];
         [ObservableProperty]
         private ListView listViewTracks = new();
 
         [RelayCommand]
-        private async Task SearchingTask()
+        private async Task SearchingTaskAsync()
         {
             if (string.IsNullOrEmpty(SearchQuery))
             {
@@ -29,29 +29,37 @@ namespace SoundScapes.Models
             IsSearching = true;
             IsSearchingEnabled = false;
 
-            try
+            var spotify = new SpotifyClient();
+            await Task.Run(async () =>
             {
-                var spotify = new SpotifyClient();
-                TracksList.Clear();
-                foreach (var result in await spotify.Search.GetResultsAsync(SearchQuery))
+                try
                 {
-                    // Use pattern matching to handle different results (albums, artists, tracks, playlists)
-                    if (result is TrackSearchResult track)
+                    TracksList.Clear();
+                    foreach (var result in await spotify.Search.GetResultsAsync(SearchQuery))
                     {
-                        TracksList.Add(track);
+                        // Use pattern matching to handle different results (albums, artists, tracks, playlists)
+                        if (result is TrackSearchResult track)
+                        {
+                            TracksList.Add(track);
+                        }
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                if (App.Current != null && App.Current.MainPage != null)
+                catch(Exception ex)
                 {
-                    await App.Current.MainPage.DisplayAlert("Помилка!", "Виникла якась помилка, спробуйте ще раз." + "\n" + ex.Message, "OK");
+                    if (App.Current != null && App.Current.MainPage != null)
+                    {
+                        await App.Current.MainPage.DisplayAlert("Помилка!", "Виникла якась помилка, спробуйте ще раз." + "\n" + ex.Message, "OK");
+                    }
                 }
-            }
 
-            ListViewTracks.ItemsSource = null;
-            ListViewTracks.ItemsSource = TracksList;
+
+            });
+
+            var thread = Dispatcher.GetForCurrentThread();
+            thread?.DispatchAsync(() => {
+                ListViewTracks.ItemsSource = null;
+                ListViewTracks.ItemsSource = TracksList;
+            });
 
             IsSearching = false;
             IsSearchingEnabled = true; 
