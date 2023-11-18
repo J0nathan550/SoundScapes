@@ -7,7 +7,7 @@
     Shell.FlyoutBehavior="Disabled"
     Shell.TabBarIsVisible="True"
     FlyoutBackgroundColor="#1C1C1C"
-    Title="SoundScapes">
+    Title="Sound Scapes">
 
     <TabBar>
         <Tab Title="Пошук" Icon="magnifying_glass.png">
