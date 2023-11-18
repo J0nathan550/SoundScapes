@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SpotifyExplode;
 using SpotifyExplode.Search;
@@ -44,12 +46,29 @@ namespace SoundScapes.Models
                         }
                     }
                 }
-                catch(Exception ex)
+                catch 
                 {
-                    if (App.Current != null && App.Current.MainPage != null)
+                    //if (App.Current != null && App.Current.MainPage != null)
+                    //{
+                    //    await App.Current.MainPage.DisplayAlert("Помилка!", "Виникла якась помилка, спробуйте ще раз." + "\n" + ex.Message, "OK");
+                    //}
+                    //CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+                    //string text = "Виникла якась помилка, спробуйте ще раз.";
+                    //ToastDuration duration = ToastDuration.Short;
+                    //double fontSize = 14;
+
+                    //var toast = Toast.Make(text, duration, fontSize);
+
+                    //await toast.Show(cancellationTokenSource.Token);
+                    var snackBar = Snackbar.Make("Looks like you have problem with internet!", null, "OK", TimeSpan.FromSeconds(5), new SnackbarOptions()
                     {
-                        await App.Current.MainPage.DisplayAlert("Помилка!", "Виникла якась помилка, спробуйте ще раз." + "\n" + ex.Message, "OK");
-                    }
+                        BackgroundColor = new Color(0x2C, 0x2C, 0x2C),
+                        CornerRadius = 6,
+                        TextColor = new Color(255, 255, 255),
+                        ActionButtonTextColor = new Color(255, 255 ,255)
+                    });
+                    await snackBar.Show();
                 }
 
 
