@@ -22,7 +22,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Image Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" Source="{Binding Album.Images[0].Url}"/>
+                            <Image Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="50" HeightRequest="50" Source="{Binding Album.Images[0].Url}"/>
                             <Grid Margin="5,0,0,0" Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition/>
