@@ -21,7 +21,7 @@ namespace SoundScapes.Models
         private ListView listViewTracks = new();
 
         [RelayCommand]
-        private async Task SearchingTaskAsync()
+        private async Task SearchingTaskAsync(CancellationToken token)
         {
             if (string.IsNullOrEmpty(SearchQuery))
             {
@@ -32,56 +32,38 @@ namespace SoundScapes.Models
             IsSearchingEnabled = false;
 
             var spotify = new SpotifyClient();
-            await Task.Run(async () =>
+
+            try
             {
-                try
+                TracksList.Clear();
+                foreach (var result in await spotify.Search.GetResultsAsync(SearchQuery, SearchFilter.Track, 0, 50, token).ConfigureAwait(false))
                 {
-                    TracksList.Clear();
-                    foreach (var result in await spotify.Search.GetResultsAsync(SearchQuery))
+                    // Use pattern matching to handle different results (albums, artists, tracks, playlists)
+                    if (result is TrackSearchResult track)
                     {
-                        // Use pattern matching to handle different results (albums, artists, tracks, playlists)
-                        if (result is TrackSearchResult track)
-                        {
-                            TracksList.Add(track);
-                        }
+                        TracksList.Add(track);
                     }
                 }
-                catch 
+            }
+            catch
+            {
+                var snackBar = Snackbar.Make("Looks like you have problem with internet!", null, "OK", TimeSpan.FromSeconds(5), new SnackbarOptions()
                 {
-                    //if (App.Current != null && App.Current.MainPage != null)
-                    //{
-                    //    await App.Current.MainPage.DisplayAlert("Помилка!", "Виникла якась помилка, спробуйте ще раз." + "\n" + ex.Message, "OK");
-                    //}
-                    //CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+                    BackgroundColor = new Color(0x2C, 0x2C, 0x2C),
+                    CornerRadius = 6,
+                    TextColor = new Color(255, 255, 255),
+                    ActionButtonTextColor = new Color(255, 255, 255)
+                });
+                await snackBar.Show(token).ConfigureAwait(false);
+            }
 
-                    //string text = "Виникла якась помилка, спробуйте ще раз.";
-                    //ToastDuration duration = ToastDuration.Short;
-                    //double fontSize = 14;
-
-                    //var toast = Toast.Make(text, duration, fontSize);
-
-                    //await toast.Show(cancellationTokenSource.Token);
-                    var snackBar = Snackbar.Make("Looks like you have problem with internet!", null, "OK", TimeSpan.FromSeconds(5), new SnackbarOptions()
-                    {
-                        BackgroundColor = new Color(0x2C, 0x2C, 0x2C),
-                        CornerRadius = 6,
-                        TextColor = new Color(255, 255, 255),
-                        ActionButtonTextColor = new Color(255, 255 ,255)
-                    });
-                    await snackBar.Show();
-                }
-
-
-            });
-
-            var thread = Dispatcher.GetForCurrentThread();
-            thread?.DispatchAsync(() => {
+            IsSearching = false;
+            IsSearchingEnabled = true;
+            ListViewTracks.Dispatcher.Dispatch(() =>
+            {
                 ListViewTracks.ItemsSource = null;
                 ListViewTracks.ItemsSource = TracksList;
             });
-
-            IsSearching = false;
-            IsSearchingEnabled = true; 
         }
     }
 }

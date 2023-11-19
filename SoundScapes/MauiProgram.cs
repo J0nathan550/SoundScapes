@@ -13,6 +13,7 @@ namespace SoundScapes
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseMauiCommunityToolkitMediaElement()
                 .ConfigureLifecycleEvents(events =>
                 {
 #if WINDOWS
