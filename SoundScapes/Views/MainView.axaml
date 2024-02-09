@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SoundScapes.ViewModels"
+			 xmlns:views="clr-namespace:SoundScapes.Views"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SoundScapes.Views.MainView">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
+		<Grid Grid.Row="0">
+			<views:SearchView Name="searchViewPage" IsVisible="True"/>
+			<views:LibraryView Name="libraryViewPage" IsVisible="False"/>
+			<views:SettingsView Name="settingsViewPage" IsVisible="False"/>
+			<views:StatisticsView Name="statisticsViewPage" IsVisible="False"/>
+			<views:AuthorView Name="authorViewPage" IsVisible="False"/>
+		</Grid>
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<Button Name="searchMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+				<Grid>
+					<TextBlock Text="Search"/>
+				</Grid>
+			</Button>
+			<Button Name="libraryMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="1" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+				<Grid>
+					<TextBlock Text="Library"/>
+				</Grid>
+			</Button>
+			<Button Name="settingsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="2" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+				<Grid>
+					<TextBlock Text="Settings"/>
+				</Grid>
+			</Button>
+			<Button Name="statisticsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="3" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+				<Grid>
+					<TextBlock Text="Statistics"/>
+				</Grid>
+			</Button>
+			<Button Name="authorMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="4" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+				<Grid>
+					<TextBlock Text="Author"/>
+				</Grid>
+			</Button>
+		</Grid>
+	</Grid>
+</UserControl>
