@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800"
+			 Height="100"
+			 x:Class="SoundScapes.Templates.SongTemplate">
+	<Border Name="borderTemplate" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+		<Border.Background>
+				<ImageBrush Stretch="UniformToFill" Opacity="0.05"/>
+		</Border.Background>
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="auto"/>
+				<ColumnDefinition/>
+				<ColumnDefinition Width="auto"/>
+			</Grid.ColumnDefinitions>
+			<Image Name="songImage" Margin="10,0,10,0" Stretch="Uniform" Source="/Assets/circle-play-solid.png"/>
+			<Grid Grid.Column="1">
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition/>
+				</Grid.RowDefinitions>
+				<TextBlock Name="authorSong" Text="Freddie Dredd" FontSize="24" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+				<TextBlock Name="titleSong" Grid.Row="1" Text="Limbo" FontSize="20" VerticalAlignment="Top" TextTrimming="CharacterEllipsis"/>
+			</Grid>
+			<Grid Grid.Column="2">
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition Height="auto"/>
+				</Grid.RowDefinitions>
+				<Image Margin="0,5,0,0" Source="/Assets/circle-play-solid.png"/>
+				<TextBlock Name="endTimeOfSong" Grid.Row="1" Margin="8" Text="2:42" FontSize="24"/>
+			</Grid>
+		</Grid>
+	</Border>
+</UserControl>
