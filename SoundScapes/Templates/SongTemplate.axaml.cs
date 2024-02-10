@@ -1,34 +1,35 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using LibVLCSharp.Shared;
+using SoundScapes.Helpers;
+using SpotifyExplode;
+using SpotifyExplode.Tracks;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using LibVLCSharp;
-using LibVLCSharp.Shared;
-using System.Linq;
+using YoutubeReExplode;
+using YoutubeReExplode.Videos.Streams;
 
 namespace SoundScapes.Templates;
 
 public partial class SongTemplate : UserControl
 {
     /// <summary>
-    /// songLink variable is storing the link from the spotify track.
+    /// In order to play full songs we use YouTube Client because there is no API to get stream from Spotify.
     /// </summary>
-    private string songLink = string.Empty; 
+    private readonly YoutubeClient youtubeClient = new();
+    private Track spotifyTrack = new();
     /// <summary>
     /// Creates SongTemplate that will later will be represented in renderPanel.
     /// </summary>
-    /// <param name="author">Author of the song</param>
-    /// <param name="title">Name of the song</param>
-    /// <param name="songEnd">In how many minutes song will end?</param>
-    /// <param name="linkImage">Link where to load image from</param>
-    public SongTemplate(string author, string title, string songEnd, string linkImage, string songLink)
+    /// <param name="spotifyTrack">Entire spotify track</param>
+    public SongTemplate(Track spotifyTrack)
     {
         InitializeComponent();
-        Load(author, title, songEnd, linkImage, songLink);
+        Load(spotifyTrack);
     }
 
     /// <summary>
@@ -39,14 +40,11 @@ public partial class SongTemplate : UserControl
     /// <summary>
     /// Function that loads all of the visuals provided from constructor.
     /// </summary>
-    /// <param name="author">Author of the music</param>
-    /// <param name="title">Name of the music</param>
-    /// <param name="songEnd">In how many minutes song will end?</param>
-    /// <param name="linkImage">Link where to load image from</param>
-    private async void Load(string author, string title, string songEnd, string linkImage, string songLink)
+    /// <param name="spotifyTrack">Entire spotify track</param>
+    private async void Load(Track spotifyTrack)
     {
-        this.songLink = songLink;
-        Bitmap? imageBitmap = await LoadImageFromUrlAsync(linkImage);
+        this.spotifyTrack = spotifyTrack;
+        Bitmap? imageBitmap = await LoadImageFromUrlAsync(spotifyTrack.Album.Images[1].Url);
         ImageBrush backgroundTemplate = new()
         {
             Opacity = 0.3,
@@ -55,9 +53,15 @@ public partial class SongTemplate : UserControl
         };
         borderTemplate.Background = backgroundTemplate;
         songImage.Source = imageBitmap;
-        authorSong.Text = author;
-        titleSong.Text = title;
-        endTimeOfSong.Text = songEnd;
+        string authors = string.Empty;
+        foreach (var author in spotifyTrack.Artists)
+        {
+            authors += $"{author.Name}, ";
+        }
+        authors = authors[..^2];
+        authorSong.Text = authors;
+        titleSong.Text = spotifyTrack.Title;
+        endTimeOfSong.Text = TimeConverter.ConvertDurationToString(spotifyTrack.DurationMs);
         RenderOptions.SetBitmapInterpolationMode(songImage, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(borderTemplate, BitmapInterpolationMode.HighQuality);
     }
@@ -84,19 +88,32 @@ public partial class SongTemplate : UserControl
         }
     }
 
-    private void Song_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private async void Song_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        Task.Run(() =>
+        try
         {
+            SpotifyClient spotifyClient = new();
+            var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
+            var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
+            var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+
             Core.Initialize();
 
             using var libvlc = new LibVLC();
-            var media = new Media(libvlc, songLink, FromType.FromLocation);
-            var mediaPlayer = new MediaPlayer(media)
+            var media = new Media(libvlc, streamInfo.Url, FromType.FromLocation);
+            if (Helper.player != null)
+            {
+                Helper.player.Stop();
+                Helper.player.Dispose();
+                Helper.player = null;
+                return;
+            }
+            Helper.player = new(media)
             {
                 Volume = 30
             };
-            mediaPlayer.Play();
-        });
+            Helper.player.Play();
+        }
+        catch { }
     }
 }

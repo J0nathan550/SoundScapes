@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
-using SoundScapes.Helpers;
 using SoundScapes.Templates;
 using SpotifyExplode;
 using SpotifyExplode.Search;
@@ -106,7 +105,7 @@ public partial class SearchView : UserControl
                     {
                         try
                         {
-                            SongTemplate songTemplate = new(result.Artists[0].Name, result.Title, TimeConverter.ConvertDurationToString(result.DurationMs), result.Album.Images[1].Url, result.PreviewUrl);
+                            SongTemplate songTemplate = new(result);
                             resultsPanel.Children.Add(songTemplate);
                         }
                         catch { } // just in case something is missing in api we just ignore the template. 
