@@ -5,9 +5,9 @@
              mc:Ignorable="d" d:DesignWidth="800"
 			 Height="100"
 			 x:Class="SoundScapes.Templates.SongTemplate">
-	<Border Name="borderTemplate" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+	<Border Name="borderTemplate" Tapped="Song_Tapped" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 		<Border.Background>
-				<ImageBrush Stretch="UniformToFill" Opacity="0.05"/>
+				<ImageBrush Stretch="UniformToFill" Opacity="0.3"/>
 		</Border.Background>
 		<Grid>
 			<Grid.ColumnDefinitions>
@@ -21,8 +21,8 @@
 					<RowDefinition/>
 					<RowDefinition/>
 				</Grid.RowDefinitions>
-				<TextBlock Name="authorSong" Text="Freddie Dredd" FontSize="24" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
-				<TextBlock Name="titleSong" Grid.Row="1" Text="Limbo" FontSize="20" VerticalAlignment="Top" TextTrimming="CharacterEllipsis"/>
+				<TextBlock Name="authorSong" Text="..." FontSize="24" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+				<TextBlock Name="titleSong" Grid.Row="1" Text="..." FontSize="20" VerticalAlignment="Top" TextTrimming="CharacterEllipsis"/>
 			</Grid>
 			<Grid Grid.Column="2">
 				<Grid.RowDefinitions>
@@ -30,7 +30,7 @@
 					<RowDefinition Height="auto"/>
 				</Grid.RowDefinitions>
 				<Image Margin="0,5,0,0" Source="/Assets/circle-play-solid.png"/>
-				<TextBlock Name="endTimeOfSong" Grid.Row="1" Margin="8" Text="2:42" FontSize="24"/>
+				<TextBlock Name="endTimeOfSong" Text="0:00" Grid.Row="1" Margin="8" FontSize="24"/>
 			</Grid>
 		</Grid>
 	</Border>

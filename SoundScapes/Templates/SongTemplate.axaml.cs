@@ -1,16 +1,23 @@
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System;
-using System.Diagnostics;
-using Avalonia.Media.Imaging;
+using LibVLCSharp;
+using LibVLCSharp.Shared;
+using System.Linq;
 
 namespace SoundScapes.Templates;
 
 public partial class SongTemplate : UserControl
 {
+    /// <summary>
+    /// songLink variable is storing the link from the spotify track.
+    /// </summary>
+    private string songLink = string.Empty; 
     /// <summary>
     /// Creates SongTemplate that will later will be represented in renderPanel.
     /// </summary>
@@ -18,11 +25,16 @@ public partial class SongTemplate : UserControl
     /// <param name="title">Name of the song</param>
     /// <param name="songEnd">In how many minutes song will end?</param>
     /// <param name="linkImage">Link where to load image from</param>
-    public SongTemplate(string author, string title, string songEnd, string linkImage)
+    public SongTemplate(string author, string title, string songEnd, string linkImage, string songLink)
     {
         InitializeComponent();
-        Load(author, title, songEnd, linkImage);
+        Load(author, title, songEnd, linkImage, songLink);
     }
+
+    /// <summary>
+    /// Will do nothing, this was added in order to prevent any errors in IDE of Avalonia.
+    /// </summary>
+    public SongTemplate(){}
 
     /// <summary>
     /// Function that loads all of the visuals provided from constructor.
@@ -31,12 +43,13 @@ public partial class SongTemplate : UserControl
     /// <param name="title">Name of the music</param>
     /// <param name="songEnd">In how many minutes song will end?</param>
     /// <param name="linkImage">Link where to load image from</param>
-    private async void Load(string author, string title, string songEnd, string linkImage)
+    private async void Load(string author, string title, string songEnd, string linkImage, string songLink)
     {
+        this.songLink = songLink;
         Bitmap? imageBitmap = await LoadImageFromUrlAsync(linkImage);
         ImageBrush backgroundTemplate = new()
         {
-            Opacity = 0.2,
+            Opacity = 0.3,
             Stretch = Stretch.UniformToFill,
             Source = imageBitmap
         };
@@ -69,5 +82,21 @@ public partial class SongTemplate : UserControl
             Trace.WriteLine($"Error loading image: {ex.Message}");
             return null;
         }
+    }
+
+    private void Song_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        Task.Run(() =>
+        {
+            Core.Initialize();
+
+            using var libvlc = new LibVLC();
+            var media = new Media(libvlc, songLink, FromType.FromLocation);
+            var mediaPlayer = new MediaPlayer(media)
+            {
+                Volume = 30
+            };
+            mediaPlayer.Play();
+        });
     }
 }

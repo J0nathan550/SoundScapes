@@ -106,7 +106,7 @@ public partial class SearchView : UserControl
                     {
                         try
                         {
-                            SongTemplate songTemplate = new(result.Artists[0].Name, result.Title, TimeConverter.ConvertDurationToString(result.DurationMs), result.Album.Images[0].Url);
+                            SongTemplate songTemplate = new(result.Artists[0].Name, result.Title, TimeConverter.ConvertDurationToString(result.DurationMs), result.Album.Images[1].Url, result.PreviewUrl);
                             resultsPanel.Children.Add(songTemplate);
                         }
                         catch { } // just in case something is missing in api we just ignore the template. 
