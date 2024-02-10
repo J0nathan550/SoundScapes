@@ -92,28 +92,34 @@ public partial class SongTemplate : UserControl
     {
         try
         {
-            SpotifyClient spotifyClient = new();
-            var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
-            var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
-            var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
-
-            Core.Initialize();
-
-            using var libvlc = new LibVLC();
-            var media = new Media(libvlc, streamInfo.Url, FromType.FromLocation);
-            if (Helper.player != null)
+            await Task.Run(async () =>
             {
-                Helper.player.Stop();
-                Helper.player.Dispose();
-                Helper.player = null;
-                return;
-            }
-            Helper.player = new(media)
-            {
-                Volume = 30
-            };
-            Helper.player.Play();
+                SpotifyClient spotifyClient = new();
+                var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
+                var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
+                var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+
+                Core.Initialize();
+
+                using var libvlc = new LibVLC();
+                var media = new Media(libvlc, streamInfo.Url, FromType.FromLocation);
+                if (Helper.player != null)
+                {
+                    Helper.player.Stop();
+                    Helper.player.Dispose();
+                    Helper.player = null;
+                    return;
+                }
+                Helper.player = new(media)
+                {
+                    Volume = 30
+                };
+                Helper.player.Play();
+            });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Trace.WriteLine(ex.Message);
+        }
     }
 }
