@@ -20,7 +20,6 @@ public partial class SongTemplate : UserControl
     /// <summary>
     /// In order to play full songs we use YouTube Client because there is no API to get stream from Spotify.
     /// </summary>
-    private readonly YoutubeClient youtubeClient = new();
     private Track spotifyTrack = new();
     /// <summary>
     /// Creates SongTemplate that will later will be represented in renderPanel.
@@ -94,27 +93,24 @@ public partial class SongTemplate : UserControl
         {
             await Task.Run(async () =>
             {
-                SpotifyClient spotifyClient = new();
-                var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
-                var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
+                Helper.player?.Stop();
+                var youTubeID = await Helper.spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
+                var streamManifest = await Helper.youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
                 var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
-
-                Core.Initialize();
-
-                using var libvlc = new LibVLC();
-                var media = new Media(libvlc, streamInfo.Url, FromType.FromLocation);
-                if (Helper.player != null)
+                var media = new Media(Helper.libVLC, streamInfo.Url, FromType.FromLocation);
+                if (Helper.player == null)
                 {
-                    Helper.player.Stop();
-                    Helper.player.Dispose();
-                    Helper.player = null;
-                    return;
+                    Helper.player = new(media)
+                    {
+                        Volume = 30
+                    };
+                    Helper.player.Play();
                 }
-                Helper.player = new(media)
+                else
                 {
-                    Volume = 30
-                };
-                Helper.player.Play();
+                    Helper.player.Media = media;
+                    Helper.player.Play();
+                }
             });
         }
         catch (Exception ex)

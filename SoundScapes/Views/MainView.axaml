@@ -10,6 +10,7 @@
 		<Grid.RowDefinitions>
 			<RowDefinition/>
 			<RowDefinition Height="auto"/>
+			<RowDefinition Height="auto"/>
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0">
 			<views:SearchView Name="searchViewPage" IsVisible="True"/>
@@ -18,7 +19,8 @@
 			<views:StatisticsView Name="statisticsViewPage" IsVisible="False"/>
 			<views:AuthorView Name="authorViewPage" IsVisible="False"/>
 		</Grid>
-		<Grid Grid.Row="1">
+		<views:PlayerView Grid.Row="1"/>
+		<Grid Grid.Row="2">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition/>
 				<ColumnDefinition/>
@@ -28,27 +30,52 @@
 			</Grid.ColumnDefinitions>
 			<Button Name="searchMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
-					<TextBlock Text="Search"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/magnifying-glass-solid.png" Width="32" Height="32"/>
+					<TextBlock Grid.Row="1" Text="Search"/>
 				</Grid>
 			</Button>
 			<Button Name="libraryMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="1" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
-					<TextBlock Text="Library"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/bars-solid.png" Width="32" Height="32"/>
+					<TextBlock Grid.Row="1" Text="Library"/>
 				</Grid>
 			</Button>
 			<Button Name="settingsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="2" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
-					<TextBlock Text="Settings"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/gear-solid.png" Width="32" Height="32"/>
+					<TextBlock Grid.Row="1" Text="Settings"/>
 				</Grid>
 			</Button>
 			<Button Name="statisticsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="3" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
-					<TextBlock Text="Statistics"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/chart-simple-solid.png" Width="32" Height="32"/>
+					<TextBlock Grid.Row="1" Text="Statistics"/>
 				</Grid>
 			</Button>
 			<Button Name="authorMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="4" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
-					<TextBlock Text="Author"/>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/user-solid.png" Width="32" Height="32"/>
+					<TextBlock Grid.Row="1" Text="Author"/>
 				</Grid>
 			</Button>
 		</Grid>

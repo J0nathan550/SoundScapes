@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using LibVLCSharp.Shared;
 using SoundScapes.Views;
 using System;
 
@@ -10,6 +11,7 @@ public partial class App : Application
 {
     public override void Initialize() 
     {
+        Core.Initialize();
         Environment.SetEnvironmentVariable("SLAVA_UKRAINI", "1");
         AvaloniaXamlLoader.Load(this);
     }
