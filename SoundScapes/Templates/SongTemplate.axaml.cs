@@ -62,7 +62,6 @@ public partial class SongTemplate : UserControl
         titleSong.Text = spotifyTrack.Title;
         endTimeOfSong.Text = TimeConverter.ConvertDurationToString(spotifyTrack.DurationMs);
         RenderOptions.SetBitmapInterpolationMode(songImage, BitmapInterpolationMode.HighQuality);
-        RenderOptions.SetBitmapInterpolationMode(borderTemplate, BitmapInterpolationMode.HighQuality);
     }
 
     /// <summary>

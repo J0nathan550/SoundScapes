@@ -34,7 +34,7 @@
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/magnifying-glass-solid.png" Width="32" Height="32"/>
+					<Image Name="searchIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/magnifying-glass-solid.png" Width="32" Height="32"/>
 					<TextBlock Grid.Row="1" Text="Search"/>
 				</Grid>
 			</Button>
@@ -44,7 +44,7 @@
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/bars-solid.png" Width="32" Height="32"/>
+					<Image Name="libraryIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/bars-solid.png" Width="32" Height="32"/>
 					<TextBlock Grid.Row="1" Text="Library"/>
 				</Grid>
 			</Button>
@@ -54,7 +54,7 @@
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/gear-solid.png" Width="32" Height="32"/>
+					<Image Name="settingsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/gear-solid.png" Width="32" Height="32"/>
 					<TextBlock Grid.Row="1" Text="Settings"/>
 				</Grid>
 			</Button>
@@ -64,7 +64,7 @@
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/chart-simple-solid.png" Width="32" Height="32"/>
+					<Image Name="statisticsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/chart-simple-solid.png" Width="32" Height="32"/>
 					<TextBlock Grid.Row="1" Text="Statistics"/>
 				</Grid>
 			</Button>
@@ -74,7 +74,7 @@
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Grid.Row="0" Source="avares://SoundScapes/Assets/user-solid.png" Width="32" Height="32"/>
+					<Image Name="authorIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/user-solid.png" Width="32" Height="32"/>
 					<TextBlock Grid.Row="1" Text="Author"/>
 				</Grid>
 			</Button>

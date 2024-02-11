@@ -1,6 +1,8 @@
 ﻿using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Media;
 using System;
 
 namespace SoundScapes.Views;
@@ -10,6 +12,11 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
+        RenderOptions.SetBitmapInterpolationMode(searchIcon, BitmapInterpolationMode.HighQuality);
+        RenderOptions.SetBitmapInterpolationMode(libraryIcon, BitmapInterpolationMode.HighQuality);
+        RenderOptions.SetBitmapInterpolationMode(settingsIcon, BitmapInterpolationMode.HighQuality);
+        RenderOptions.SetBitmapInterpolationMode(statisticsIcon, BitmapInterpolationMode.HighQuality);
+        RenderOptions.SetBitmapInterpolationMode(authorIcon, BitmapInterpolationMode.HighQuality);
     }
 
     private void PageSwitch_Clicked(object? sender, RoutedEventArgs e)
