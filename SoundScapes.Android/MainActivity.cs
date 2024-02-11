@@ -23,4 +23,15 @@ public class MainActivity : AvaloniaMainActivity<App>
             .WithInterFont()
             .UseReactiveUI();
     }
+    protected override void OnCreate(Bundle savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+        Intent? serviceIntent = new(this, typeof(KeepRunningForever));
+        if (serviceIntent != null)
+        {
+#pragma warning disable CA1416 // Validate platform compatibility
+            StartForegroundService(serviceIntent);
+#pragma warning restore CA1416 // Validate platform compatibility
+        }
+    }
 }
