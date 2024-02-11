@@ -1,11 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using SoundScapes.Templates;
+using SoundScapes.Helpers;
+using SoundScapes.Models;
 using SpotifyExplode;
 using SpotifyExplode.Search;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -16,6 +19,7 @@ namespace SoundScapes.Views;
 /// </summary>
 public partial class SearchView : UserControl
 {
+    private static SearchView? searchViewInstance;
     /// <summary>
     /// Timer that will execute search event when user will stop typing something.
     /// </summary>
@@ -24,11 +28,24 @@ public partial class SearchView : UserControl
     /// SpotifyClient is an high level API class that provides ability to search in the Spotify API to retrive songs. 
     /// </summary>
     private readonly SpotifyClient spotifyClient = new();
+    /// <summary>
+    /// songList is a list that you get from searching songs, used to show items in <see cref="resultsPanel"/>
+    /// </summary>
+    public readonly ObservableCollection<SongInfo> songList = [];
+    /// <summary>
+    /// Singleton of this Page or User Control if you will. Used to check the values in <see cref="resultsPanel"/>. in <see cref="PlayerMediaSound"/>
+    /// </summary>
+    public static SearchView? SearchViewInstance { get => searchViewInstance; set => searchViewInstance = value; }
 
+    /// <summary>
+    /// Main constructor of SearchView.
+    /// </summary>
     public SearchView()
     {
         InitializeComponent();
+        resultsPanel.ItemsSource = songList;
         searchTimer.Elapsed += SearchTimer_ElapsedAsync;
+        SearchViewInstance = this;  
     }
 
     /// <summary>
@@ -65,10 +82,7 @@ public partial class SearchView : UserControl
     /// <returns>Songs metadata in <see cref="resultsPanel"/></returns>
     private async Task SearchSongs(string? query)
     {
-        Dispatcher.UIThread.Invoke(() =>
-        {
-            resultsPanel.Children.Clear();
-        });
+        songList.Clear();
         searchTimer.Stop();
         if (string.IsNullOrEmpty(query)) return;
         List<TrackSearchResult> results = [];
@@ -78,45 +92,73 @@ public partial class SearchView : UserControl
         }
         catch // if there is any internet issues we tell about it. 
         {
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                resultsPanel.Children.Clear();
-                TextBlock notFound = new()
-                {
-                    Margin = new Thickness(25),
-                    Foreground = new SolidColorBrush(Colors.White),
-                    Text = $"Looks like you have problems with internet!",
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-                };
-                resultsPanel.Children.Add(notFound);
-            });
+            songList.Clear();
+            NoContentFound(query);
             return;
         }
         if (results.Count > 0)
         {
             foreach (var result in results)
             {
+                if (songList.Count > 50)
+                {
+                    songList.Clear();
+                    return;
+                }
                 await Task.Run(async () =>
                 {
-                    await Task.Delay(20);
-                    Dispatcher.UIThread.Invoke(() =>
+                    try
                     {
-                        try
+                        var image = await BitmapImageLoader.LoadImageFromUrlAsync(result.Album.Images[1].Url);
+                        string artists = string.Empty;
+                        foreach (var artist in result.Artists)
                         {
-                            SongTemplate songTemplate = new(result);
-                            resultsPanel.Children.Add(songTemplate);
+                            artists += $"{artist.Name}, ";
                         }
-                        catch { } // just in case something is missing in api we just ignore the template. 
-                    });
+                        artists = artists[..^2];
+                        songList.Add(new SongInfo()
+                        {
+                            SongImage = image,
+                            SongTitle = result.Title,
+                            SongEnd = TimeConverter.ConvertDurationToString(result.DurationMs),
+                            SongAuthor = artists,
+                            SongUrl = result
+                        });
+                    }
+                    catch { }
                 });
             }
             return;
         }
+        songList.Clear();
+        NoContentFound(query);
+    }
+
+    /// <summary>
+    /// When item was clicked in <see cref="resultsPanel"/> it checks the item index that was clicked, and based on it changes certain visuals.
+    /// And plays specific song. 
+    /// </summary>
+    private void SearchResult_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (PlayerViewCompact.PlayerViewCompactInstance != null && PlayerMediaSound.PlayerMediaSoundInstance != null)
+        {
+            Bitmap? icon = songList[resultsPanel.SelectedIndex].SongImage;
+            if (icon != null)
+            {
+                PlayerViewCompact.PlayerViewCompactInstance.LoadContentToPlayerViewCompact(icon, songList[resultsPanel.SelectedIndex].SongTitle, songList[resultsPanel.SelectedIndex].SongAuthor, songList[resultsPanel.SelectedIndex].SongEnd);
+                PlayerMediaSound.PlayerMediaSoundInstance.PlayMusic(songList[resultsPanel.SelectedIndex].SongUrl);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helpful function that shows something was not found as the visual in the window.
+    /// </summary>
+    /// <param name="query">Query, or text of what was not found</param>
+    private static void NoContentFound(string query)
+    {
         Dispatcher.UIThread.Invoke(() =>
         {
-            resultsPanel.Children.Clear();
             TextBlock notFound = new()
             {
                 Margin = new Thickness(25),
@@ -126,7 +168,7 @@ public partial class SearchView : UserControl
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
-            resultsPanel.Children.Add(notFound);
+            Grid.SetRow(notFound, 1);
         });
     }
 }

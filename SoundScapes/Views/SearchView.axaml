@@ -9,11 +9,36 @@
 			<RowDefinition Height="auto"/>
 			<RowDefinition/>
 		</Grid.RowDefinitions>
-		<TextBox Name="searchTextBox" FontSize="20" Watermark="Type name of the song..." TextChanged="SearchTextBox_TextChanged" CornerRadius="0"/>
-		<ScrollViewer Grid.Row="1">
-			<StackPanel Name="resultsPanel" Spacing="10">
-				
-			</StackPanel>
-		</ScrollViewer>
+		<TextBox Name="searchTextBox" BorderBrush="White" BorderThickness="1" FontSize="20" Watermark="Type name of the song..." TextChanged="SearchTextBox_TextChanged" CornerRadius="0"/>
+		<ListBox Background="Transparent" Grid.Row="1" Name="resultsPanel" SelectionChanged="SearchResult_SelectionChanged">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<Border Height="100" Name="borderTemplate" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Border.Background>
+							<ImageBrush Source="{Binding SongImage}" Stretch="UniformToFill" Opacity="0.3"/>
+						</Border.Background>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="auto"/>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="auto"/>
+							</Grid.ColumnDefinitions>
+							<Image Stretch="UniformToFill" Margin="0, 0, 10, 0" Source="{Binding SongImage}"/>
+							<Grid Grid.Column="1">
+								<Grid.RowDefinitions>
+									<RowDefinition/>
+									<RowDefinition/>
+								</Grid.RowDefinitions>
+								<TextBlock Text="{Binding SongAuthor}" FontSize="24" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+								<TextBlock Grid.Row="1" Text="{Binding SongTitle}" FontSize="20" VerticalAlignment="Top" TextTrimming="CharacterEllipsis"/>
+							</Grid>
+							<Grid Grid.Column="2">
+								<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding SongEnd}" Margin="8" FontSize="24"/>
+							</Grid>
+						</Grid>
+					</Border>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
 	</Grid>
 </UserControl>

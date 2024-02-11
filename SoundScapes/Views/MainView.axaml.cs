@@ -9,6 +9,9 @@ namespace SoundScapes.Views;
 
 public partial class MainView : UserControl
 {
+    /// <summary>
+    /// Main constructor of <see cref="MainView"/>
+    /// </summary>
     public MainView()
     {
         InitializeComponent();
@@ -19,6 +22,9 @@ public partial class MainView : UserControl
         RenderOptions.SetBitmapInterpolationMode(authorIcon, BitmapInterpolationMode.HighQuality);
     }
 
+    /// <summary>
+    /// Function switches pages depending on what button you clicked.
+    /// </summary>
     private void PageSwitch_Clicked(object? sender, RoutedEventArgs e)
     {
         if (sender == searchMenuButton)

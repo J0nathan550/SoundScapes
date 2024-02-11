@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800"
+			 Height="50"
+             x:Class="SoundScapes.Views.PlayerViewCompact">
+	<Border Name="mediaPlayerBorder" BorderThickness="1" BorderBrush="White">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition Width="auto"/>
+				<ColumnDefinition Width="auto"/>
+				<ColumnDefinition Width="auto"/>
+				<ColumnDefinition Width="auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid Grid.Column="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="auto"/>
+					<ColumnDefinition/>
+					<ColumnDefinition Width="auto"/>
+				</Grid.ColumnDefinitions>
+				<Image Name="songImage" Margin="10, 5, 10, 5" Stretch="Uniform" Source="avares://SoundScapes/Assets/circle-play-solid.png"/>
+				<Grid Grid.Column="1">
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<TextBlock Name="authorSong" Text="..." FontSize="14" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+					<TextBlock Name="titleSong" Grid.Row="1" Text="..." FontSize="10" VerticalAlignment="Top" TextTrimming="CharacterEllipsis"/>
+				</Grid>
+				<TextBlock TextAlignment="Center" VerticalAlignment="Center" Name="endTimeOfSong" Text="0:00 / 0:00" TextTrimming="CharacterEllipsis" Grid.Column="2" Margin="8" FontSize="14"/>
+			</Grid>
+			<Button VerticalAlignment="Stretch" Click="DownloadButton_Click" Background="Transparent" Grid.Column="1">
+				<Image Name="downloadIcon" Width="32" Source="avares://SoundScapes/Assets/circle-down-solid.png"/>
+			</Button>
+			<Button VerticalAlignment="Stretch" Click="PreviousSongButton_Click" Background="Transparent" Grid.Column="2">
+				<Image Name="backwardIcon" Width="24" Source="avares://SoundScapes/Assets/backward-solid.png"/>
+			</Button>
+			<Button VerticalAlignment="Stretch" Name="playButtonCompact" Click="PlayButton_Click" Background="Transparent" Grid.Column="3">
+				<Image Name="playIcon" Width="32" Source="avares://SoundScapes/Assets/play-solid.png"/>
+			</Button>
+			<Button VerticalAlignment="Stretch" Name="pauseButtonCompact" IsVisible="False" Click="PlayButton_Click" Background="Transparent" Grid.Column="3">
+				<Image Name="pauseIcon" Width="32" Source="avares://SoundScapes/Assets/pause-solid.png"/>
+			</Button>
+			<Button VerticalAlignment="Stretch" Click="NextSongButton_Click" Background="Transparent" Grid.Column="4">
+				<Image Name="forwardIcon" Width="24" Source="avares://SoundScapes/Assets/forward-solid.png"/>
+			</Button>
+		</Grid>
+	</Border>
+</UserControl>

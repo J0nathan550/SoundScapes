@@ -3,7 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +20,11 @@
     <PackageReference Include="LibVLCSharp" Version="3.8.2" />
     <PackageReference Include="SpotifyExplode" Version="1.0.7" />
     <PackageReference Include="YoutubeReExplode" Version="7.1.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\PlayerViewCompact.axaml.cs">
+      <DependentUpon>PlayerViewCompact.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
