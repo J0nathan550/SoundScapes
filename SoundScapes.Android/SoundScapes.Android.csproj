@@ -26,4 +26,44 @@
   <ItemGroup>
     <ProjectReference Include="..\SoundScapes\SoundScapes.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libvlc.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libc++_shared.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-armv7\libvlc.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-armv7\libc++_shared.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-armv8\libvlc.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-armv8\libc++_shared.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libc++_shared.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libvlc.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libc++_shared.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="C:\Users\J0nathan550\.nuget\packages\videolan.libvlc.android\3.5.3\build\android-x86\libvlc.so" />
+  </ItemGroup>
 </Project>
