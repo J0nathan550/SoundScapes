@@ -32,19 +32,19 @@
 				<TextBlock TextAlignment="Center" VerticalAlignment="Center" Name="endTimeOfSong" Text="0:00 / 0:00" TextTrimming="CharacterEllipsis" Grid.Column="2" Margin="8" FontSize="14"/>
 			</Grid>
 			<Button VerticalAlignment="Stretch" Click="DownloadButton_Click" Background="Transparent" Grid.Column="1">
-				<Image Name="downloadIcon" Width="32" Source="avares://SoundScapes/Assets/circle-down-solid.png"/>
+				<Image Name="downloadIcon" Width="16" Source="avares://SoundScapes/Assets/circle-down-solid.png"/>
 			</Button>
 			<Button VerticalAlignment="Stretch" Click="PreviousSongButton_Click" Background="Transparent" Grid.Column="2">
-				<Image Name="backwardIcon" Width="24" Source="avares://SoundScapes/Assets/backward-solid.png"/>
+				<Image Name="backwardIcon" Width="16" Source="avares://SoundScapes/Assets/backward-solid.png"/>
 			</Button>
 			<Button VerticalAlignment="Stretch" Name="playButtonCompact" Click="PlayButton_Click" Background="Transparent" Grid.Column="3">
-				<Image Name="playIcon" Width="32" Source="avares://SoundScapes/Assets/play-solid.png"/>
+				<Image Name="playIcon" Width="16" Source="avares://SoundScapes/Assets/play-solid.png"/>
 			</Button>
 			<Button VerticalAlignment="Stretch" Name="pauseButtonCompact" IsVisible="False" Click="PlayButton_Click" Background="Transparent" Grid.Column="3">
-				<Image Name="pauseIcon" Width="32" Source="avares://SoundScapes/Assets/pause-solid.png"/>
+				<Image Name="pauseIcon" Width="16" Source="avares://SoundScapes/Assets/pause-solid.png"/>
 			</Button>
 			<Button VerticalAlignment="Stretch" Click="NextSongButton_Click" Background="Transparent" Grid.Column="4">
-				<Image Name="forwardIcon" Width="24" Source="avares://SoundScapes/Assets/forward-solid.png"/>
+				<Image Name="forwardIcon" Width="16" Source="avares://SoundScapes/Assets/forward-solid.png"/>
 			</Button>
 		</Grid>
 	</Border>

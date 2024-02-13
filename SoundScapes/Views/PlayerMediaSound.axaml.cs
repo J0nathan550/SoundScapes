@@ -1,10 +1,10 @@
 using Avalonia.Controls;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using SoundScapes.Helpers;
 using SpotifyExplode;
 using SpotifyExplode.Tracks;
+using System.Threading;
 using System.Threading.Tasks;
 using YoutubeReExplode;
 using YoutubeReExplode.Videos.Streams;
@@ -14,6 +14,7 @@ namespace SoundScapes.Views;
 public partial class PlayerMediaSound : UserControl
 {
     private static PlayerMediaSound? playerMediaSoundInstance;
+    public CancellationTokenSource cancelSong = new(); 
     /// <summary>
     /// Cached <see cref="SpotifyClient"/> to load track ID in YouTube.
     /// </summary>
@@ -33,7 +34,7 @@ public partial class PlayerMediaSound : UserControl
     /// <summary>
     /// <see cref="MediaPlayer"/> used to play audio in the program.
     /// </summary>
-    private MediaPlayer? mediaPlayer;
+    public MediaPlayer? mediaPlayer;
 
     /// <summary>
     /// Main constructor <see cref="PlayerMediaSound"/>
@@ -55,38 +56,46 @@ public partial class PlayerMediaSound : UserControl
     /// <param name="spotifyTrack">spotifyTrack to play sound.</param>
     public async void PlayMusic(Track spotifyTrack)
     {
+        cancelSong = new CancellationTokenSource();
         await Task.Run(async () =>
         {
-            mediaPlayer?.Stop();
-            this.spotifyTrack = spotifyTrack;
-            var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id);
-            var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, default);
-            var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
-            var media = new Media(libVLC, streamInfo.Url, FromType.FromLocation);
-            if (mediaPlayer == null)
+            try
             {
-                mediaPlayer = new(media)
+                mediaPlayer?.Stop();
+                this.spotifyTrack = spotifyTrack;
+                var youTubeID = await spotifyClient.Tracks.GetYoutubeIdAsync(spotifyTrack.Id, cancelSong.Token);
+                var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync("https://youtube.com/watch?v=" + youTubeID, cancelSong.Token);
+                var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+                var media = new Media(libVLC, streamInfo.Url, FromType.FromLocation);
+                if (mediaPlayer == null)
                 {
-                    Volume = 30,
-                };
-                mediaPlayer.Play();
-                mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
-                mediaPlayer.EndReached += MediaPlayer_EndReached;
-            }
-            else
-            {
-                mediaPlayer.Media = media;
-                mediaPlayer.Play();
-            }
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                if (PlayerViewCompact.PlayerViewCompactInstance != null)
-                {
-                    PlayerViewCompact.PlayerViewCompactInstance.playButtonCompact.IsVisible = false;
-                    PlayerViewCompact.PlayerViewCompactInstance.pauseButtonCompact.IsVisible = true;
+                    mediaPlayer = new(media)
+                    {
+                        Volume = 30,
+                    };
+                    mediaPlayer.Play();
+                    mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
+                    mediaPlayer.EndReached += MediaPlayer_EndReached;
                 }
-            });
-        });
+                else
+                {
+                    mediaPlayer.Media = media;
+                    mediaPlayer.Play();
+                }
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    if (PlayerViewCompact.PlayerViewCompactInstance != null)
+                    {
+                        PlayerViewCompact.PlayerViewCompactInstance.playButtonCompact.IsVisible = false;
+                        PlayerViewCompact.PlayerViewCompactInstance.pauseButtonCompact.IsVisible = true;
+                    }
+                });
+            }
+            catch // when task get canceled we want to stop mediaPlayer.
+            {
+                mediaPlayer?.Stop();
+            }
+        }, cancelSong.Token);
     }
 
     /// <summary>
@@ -103,6 +112,11 @@ public partial class PlayerMediaSound : UserControl
     {
         if (PlayerViewCompact.PlayerViewCompactInstance != null)
         {
+            if (cancelSong.IsCancellationRequested)
+            {
+                mediaPlayer?.Stop();
+                return;
+            }
             Dispatcher.UIThread.Invoke(() =>
             {
                 PlayerViewCompact.PlayerViewCompactInstance.endTimeOfSong.Text = $"{TimeConverter.ConvertDurationToString(e.Time)} / {TimeConverter.ConvertDurationToString(spotifyTrack.DurationMs)}";
@@ -117,6 +131,8 @@ public partial class PlayerMediaSound : UserControl
     {
         if (SearchView.SearchViewInstance != null && mediaPlayer != null)
         {
+            cancelSong.Cancel();
+            mediaPlayer?.Stop();
             if (SearchView.SearchViewInstance.resultsPanel.Items.Count - 1 > 0)
             {
                 Dispatcher.UIThread.Invoke(() =>
@@ -141,6 +157,8 @@ public partial class PlayerMediaSound : UserControl
     {
         if (SearchView.SearchViewInstance != null && mediaPlayer != null)
         {
+            cancelSong.Cancel();
+            mediaPlayer?.Stop();
             if (SearchView.SearchViewInstance.resultsPanel.Items.Count - 1 > 0)
             {
                 Dispatcher.UIThread.Invoke(() =>

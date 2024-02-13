@@ -142,6 +142,7 @@ public partial class SearchView : UserControl
     {
         if (PlayerViewCompact.PlayerViewCompactInstance != null && PlayerMediaSound.PlayerMediaSoundInstance != null)
         {
+            PlayerMediaSound.PlayerMediaSoundInstance.cancelSong.Cancel();
             Bitmap? icon = songList[resultsPanel.SelectedIndex].SongImage;
             if (icon != null)
             {

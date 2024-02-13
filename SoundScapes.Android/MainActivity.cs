@@ -1,11 +1,11 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Media;
 using Android.OS;
 using Avalonia;
 using Avalonia.Android;
 using Avalonia.ReactiveUI;
+using SoundScapes.Views;
 
 namespace SoundScapes.Android;
 
@@ -49,13 +49,14 @@ public class MainActivity : AvaloniaMainActivity<App>
         AlertDialog.Builder? alertDialogBuilder = new(this);
         alertDialogBuilder.SetMessage("Are you sure you want to quit from SoundScapes?\n\nIt will turn off current music that is playing.");
         alertDialogBuilder.SetCancelable(false);
-        alertDialogBuilder.SetPositiveButton("Yes", (senderAlert, args) =>
+        alertDialogBuilder.SetPositiveButton("No", (senderAlert, args) =>{/*do nothing*/});
+        alertDialogBuilder.SetNegativeButton("Yes", (senderAlert, args) =>
         {
+            PlayerMediaSound.PlayerMediaSoundInstance?.cancelSong?.Cancel();
+            PlayerMediaSound.PlayerMediaSoundInstance?.mediaPlayer?.Stop();
             FinishAffinity(); // Close all activities of the app
-        });
-        alertDialogBuilder.SetNegativeButton("No", (senderAlert, args) =>
-        {
-            // Do nothing, dismiss the dialog
+            base.OnBackPressed();
+            Process.KillProcess(Process.MyPid());
         });
         AlertDialog? alertDialog = alertDialogBuilder.Create();
         alertDialog?.Show();

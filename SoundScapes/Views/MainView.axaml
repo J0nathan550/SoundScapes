@@ -10,74 +10,96 @@
 			<RowDefinition/>
 			<RowDefinition Height="auto"/>
 			<RowDefinition Height="auto"/>
+			<RowDefinition Height="1"/>
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0">
-			<views:SearchView Name="searchViewPage" IsVisible="True"/>
-			<views:LibraryView Name="libraryViewPage" IsVisible="False"/>
-			<views:SettingsView Name="settingsViewPage" IsVisible="False"/>
-			<views:StatisticsView Name="statisticsViewPage" IsVisible="False"/>
-			<views:AuthorView Name="authorViewPage" IsVisible="False"/>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="1"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1"/>
+				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
+			</Grid.ColumnDefinitions>
+			<Rectangle Fill="White" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"/>
+			<Rectangle Grid.Column="0" Grid.Row="1" Fill="White"/>
+			<views:SearchView Name="searchViewPage" Grid.Row="1" Grid.Column="1" IsVisible="True"/>
+			<views:LibraryView Name="libraryViewPage" Grid.Row="1" Grid.Column="1" IsVisible="False"/>
+			<views:SettingsView Name="settingsViewPage" Grid.Row="1" Grid.Column="1" IsVisible="False"/>
+			<views:StatisticsView Name="statisticsViewPage" Grid.Row="1" Grid.Column="1" IsVisible="False"/>
+			<views:AuthorView Name="authorViewPage" Grid.Row="1" Grid.Column="1" IsVisible="False"/>
 			<views:PlayerMediaSound/>
+			<Rectangle Grid.Column="2" Grid.Row="1" Fill="White"/>
+
 		</Grid>
 		<views:PlayerViewCompact Grid.Row="1"/>
 		<Grid Grid.Row="2">
 			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1"/>
 				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
 				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
 				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
 				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
 				<ColumnDefinition/>
+				<ColumnDefinition Width="1"/>
 			</Grid.ColumnDefinitions>
-			<Button Name="searchMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+			<Rectangle Fill="White" Grid.Column="0"/>
+			<Button Name="searchMenuButton" Grid.Column="1" Click="PageSwitch_Clicked" Background="Black" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Name="searchIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/magnifying-glass-solid.png" Width="32" Height="32"/>
-					<TextBlock Grid.Row="1" Text="Search"/>
+					<Image Name="searchIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/magnifying-glass-solid.png" Width="16" Height="16"/>
 				</Grid>
 			</Button>
-			<Button Name="libraryMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="1" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+			<Rectangle Grid.Column="2" Fill="White"/>
+			<Button Name="libraryMenuButton" Grid.Column="3" Click="PageSwitch_Clicked" Background="Black" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Name="libraryIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/bars-solid.png" Width="32" Height="32"/>
-					<TextBlock Grid.Row="1" Text="Library"/>
+					<Image Name="libraryIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/bars-solid.png" Width="16" Height="16"/>
 				</Grid>
 			</Button>
-			<Button Name="settingsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="2" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+			<Rectangle Grid.Column="4" Fill="White"/>
+			<Button Name="settingsMenuButton" Grid.Column="5" Click="PageSwitch_Clicked" Background="Black" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Name="settingsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/gear-solid.png" Width="32" Height="32"/>
-					<TextBlock Grid.Row="1" Text="Settings"/>
+					<Image Name="settingsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/gear-solid.png" Width="16" Height="16"/>
 				</Grid>
 			</Button>
-			<Button Name="statisticsMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="3" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+			<Rectangle Grid.Column="6" Fill="White"/>
+			<Button Name="statisticsMenuButton" Grid.Column="7" Click="PageSwitch_Clicked" Background="Black" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Name="statisticsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/chart-simple-solid.png" Width="32" Height="32"/>
-					<TextBlock Grid.Row="1" Text="Statistics"/>
+					<Image Name="statisticsIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/chart-simple-solid.png" Width="16" Height="16"/>
 				</Grid>
 			</Button>
-			<Button Name="authorMenuButton" Click="PageSwitch_Clicked" CornerRadius="0" Grid.Column="4" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+			<Rectangle Grid.Column="8" Fill="White"/>
+			<Button Name="authorMenuButton" Grid.Column="9" Click="PageSwitch_Clicked" Background="Black" CornerRadius="0" HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
 				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition/>
 						<RowDefinition/>
 					</Grid.RowDefinitions>
-					<Image Name="authorIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/user-solid.png" Width="32" Height="32"/>
-					<TextBlock Grid.Row="1" Text="Author"/>
+					<Image Name="authorIcon" Grid.Row="0" Source="avares://SoundScapes/Assets/user-solid.png" Width="16" Height="16"/>
 				</Grid>
 			</Button>
+			<Rectangle Grid.Column="10" Fill="White"/>
 		</Grid>
+		<Rectangle Grid.Row="3" Fill="White"/>
 	</Grid>
 </UserControl>
