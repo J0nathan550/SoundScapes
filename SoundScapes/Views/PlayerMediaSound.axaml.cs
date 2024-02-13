@@ -131,8 +131,6 @@ public partial class PlayerMediaSound : UserControl
     {
         if (SearchView.SearchViewInstance != null && mediaPlayer != null)
         {
-            cancelSong.Cancel();
-            mediaPlayer?.Stop();
             if (SearchView.SearchViewInstance.resultsPanel.Items.Count - 1 > 0)
             {
                 Dispatcher.UIThread.Invoke(() =>
@@ -157,8 +155,6 @@ public partial class PlayerMediaSound : UserControl
     {
         if (SearchView.SearchViewInstance != null && mediaPlayer != null)
         {
-            cancelSong.Cancel();
-            mediaPlayer?.Stop();
             if (SearchView.SearchViewInstance.resultsPanel.Items.Count - 1 > 0)
             {
                 Dispatcher.UIThread.Invoke(() =>
