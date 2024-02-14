@@ -1,7 +1,9 @@
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using System;
 
 namespace SoundScapes.Views;
 
@@ -16,11 +18,11 @@ public partial class PlayerViewCompact : UserControl
     {
         InitializeComponent();
         RenderOptions.SetBitmapInterpolationMode(songImage, BitmapInterpolationMode.HighQuality);
-        RenderOptions.SetBitmapInterpolationMode(downloadIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(backwardIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(playIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(pauseIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(forwardIcon, BitmapInterpolationMode.HighQuality);
+        RenderOptions.SetBitmapInterpolationMode(moreIcon, BitmapInterpolationMode.HighQuality);
         PlayerViewCompactInstance = this;
     }
 
@@ -48,10 +50,6 @@ public partial class PlayerViewCompact : UserControl
     }
 
     /// <summary>
-    /// Does nothing for now, should save song to library and download it.
-    /// </summary>
-    private void DownloadButton_Click(object? sender, RoutedEventArgs e) { }
-    /// <summary>
     /// When button is pressed plays previous song
     /// </summary>
     private void PreviousSongButton_Click(object? sender, RoutedEventArgs e) => PlayerMediaSound.PlayerMediaSoundInstance?.PreviousSong();
@@ -63,4 +61,21 @@ public partial class PlayerViewCompact : UserControl
     /// When button is pressed switches between paused / play song.
     /// </summary>
     private void PlayButton_Click(object? sender, RoutedEventArgs e) => PlayerMediaSound.PlayerMediaSoundInstance?.PlayButtonHandle();
+
+    private void More_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainView.MainViewInstance != null)
+        {
+            MainView.MainViewInstance.searchViewPage.IsVisible = false;
+            MainView.MainViewInstance.libraryViewPage.IsVisible = false;
+            MainView.MainViewInstance.settingsViewPage.IsVisible = false;
+            MainView.MainViewInstance.statisticsViewPage.IsVisible = false;
+            MainView.MainViewInstance.authorViewPage.IsVisible = false;
+            MainView.MainViewInstance.playerViewCompact.IsVisible = false;
+            MainView.MainViewInstance.playerViewFull.IsVisible = true;
+            MainView.MainViewInstance.playerViewStripe.IsVisible = true;
+            var transition = new PageSlide(TimeSpan.FromMilliseconds(300), PageSlide.SlideAxis.Vertical);
+            transition.Start(null, MainView.MainViewInstance.playerViewFull, true, default);
+        }
+    }
 }

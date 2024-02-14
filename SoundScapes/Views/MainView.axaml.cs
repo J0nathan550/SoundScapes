@@ -9,6 +9,7 @@ namespace SoundScapes.Views;
 
 public partial class MainView : UserControl
 {
+    private static MainView? mainViewInstance;
     /// <summary>
     /// Main constructor of <see cref="MainView"/>
     /// </summary>
@@ -20,7 +21,13 @@ public partial class MainView : UserControl
         RenderOptions.SetBitmapInterpolationMode(settingsIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(statisticsIcon, BitmapInterpolationMode.HighQuality);
         RenderOptions.SetBitmapInterpolationMode(authorIcon, BitmapInterpolationMode.HighQuality);
+        MainViewInstance = this; 
     }
+
+    /// <summary>
+    /// Singleton of the <see cref="MainView"/> used to find what control is visible now to hide it for the media player. 
+    /// </summary>
+    public static MainView? MainViewInstance { get => mainViewInstance; set => mainViewInstance = value; }
 
     /// <summary>
     /// Function switches pages depending on what button you clicked.
@@ -32,11 +39,14 @@ public partial class MainView : UserControl
             if (searchViewPage.IsVisible) return;
             var transition = new PageSlide(TimeSpan.FromMilliseconds(300), PageSlide.SlideAxis.Vertical);
             transition.Start(null, searchViewPage, true, default);
-            searchViewPage.IsVisible = true;
             libraryViewPage.IsVisible = false;
             settingsViewPage.IsVisible = false;
             statisticsViewPage.IsVisible = false;
             authorViewPage.IsVisible = false;
+            playerViewFull.IsVisible = false;
+            playerViewStripe.IsVisible = false;
+            playerViewCompact.IsVisible = true;
+            searchViewPage.IsVisible = true;
         }
         else if (sender == libraryMenuButton)
         {
@@ -44,10 +54,13 @@ public partial class MainView : UserControl
             var transition = new PageSlide(TimeSpan.FromMilliseconds(300), PageSlide.SlideAxis.Vertical);
             transition.Start(null, libraryViewPage, true, default);
             searchViewPage.IsVisible = false;
-            libraryViewPage.IsVisible = true;
             settingsViewPage.IsVisible = false;
             statisticsViewPage.IsVisible = false;
             authorViewPage.IsVisible = false;
+            playerViewFull.IsVisible = false;
+            playerViewStripe.IsVisible = false;
+            playerViewCompact.IsVisible = true;
+            libraryViewPage.IsVisible = true;
         }
         else if (sender == settingsMenuButton)
         {
@@ -56,9 +69,12 @@ public partial class MainView : UserControl
             transition.Start(null, settingsViewPage, true, default);
             searchViewPage.IsVisible = false;
             libraryViewPage.IsVisible = false;
-            settingsViewPage.IsVisible = true;
             statisticsViewPage.IsVisible = false;
             authorViewPage.IsVisible = false;
+            playerViewFull.IsVisible = false;
+            playerViewStripe.IsVisible = false;
+            playerViewCompact.IsVisible = true;
+            settingsViewPage.IsVisible = true;
         }
         else if (sender == statisticsMenuButton)
         {
@@ -68,8 +84,11 @@ public partial class MainView : UserControl
             searchViewPage.IsVisible = false;
             libraryViewPage.IsVisible = false;
             settingsViewPage.IsVisible = false;
-            statisticsViewPage.IsVisible = true;
             authorViewPage.IsVisible = false;
+            playerViewFull.IsVisible = false;
+            playerViewStripe.IsVisible = false;
+            playerViewCompact.IsVisible = true;
+            statisticsViewPage.IsVisible = true;
         }
         else if (sender == authorMenuButton)
         {
@@ -80,6 +99,9 @@ public partial class MainView : UserControl
             libraryViewPage.IsVisible = false;
             settingsViewPage.IsVisible = false;
             statisticsViewPage.IsVisible = false;
+            playerViewFull.IsVisible = false;
+            playerViewStripe.IsVisible = false;
+            playerViewCompact.IsVisible = true;
             authorViewPage.IsVisible = true;
         }
     }
