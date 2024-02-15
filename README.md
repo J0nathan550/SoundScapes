@@ -1,4 +1,4 @@
-# SoundScapes
+<h1 align="center"> SoundScapes </h1>
 
 SoundScapes - cross-platform program made using Avalonia / C#. 
 
