@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <style name="Theme.SoundScapes" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+                <!-- Primary brand color. -->
+                <item name="colorPrimary">@color/black</item>
+                <item name="colorPrimaryVariant">@color/black</item>
+                <item name="colorOnPrimary">@color/white</item>
+                <!-- Secondary brand color. -->
+                <item name="colorSecondary">@color/black</item>
+                <item name="colorSecondaryVariant">@color/black</item>
+                <item name="colorOnSecondary">@color/black</item>
+                <!-- Status bar color. -->
+                <item name="android:statusBarColor">@color/black</item>
+                <item name="android:navigationBarColor">@color/black</item>
+                <item name="android:navigationBarDividerColor">@color/white</item>
+                <!-- Customize your theme here. -->
+        </style>
+</resources>
