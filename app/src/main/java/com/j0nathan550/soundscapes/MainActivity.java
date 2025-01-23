@@ -15,15 +15,16 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.j0nathan550.soundscapes.fragments.PlaylistFragment;
+import com.j0nathan550.soundscapes.fragments.SearchFragment;
+import com.j0nathan550.soundscapes.fragments.SettingsFragment;
 
 public class MainActivity extends AppCompatActivity {
 
     private final SearchFragment searchFragment = new SearchFragment();
     private final PlaylistFragment playlistFragment = new PlaylistFragment();
     private final SettingsFragment settingsFragment = new SettingsFragment();
-
     private BottomNavigationView bottomNavigationView;
-
     private int lastSelectedFragmentId = -1;
 
     @Override

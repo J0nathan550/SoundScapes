@@ -3,16 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SearchFragment"
+    tools:context=".fragments.SearchFragment"
     tools:ignore="VisualLintTextFieldSize">
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent" android:rowCount="2" android:columnCount="1"
         tools:ignore="UselessParent">
-        <SearchView android:iconifiedByDefault="false" android:queryHint="@string/search_for_any_song_or_artist" android:layout_row="0" android:layout_gravity="fill">
+        <SearchView android:id="@+id/searchResultView" android:iconifiedByDefault="false" android:queryHint="@string/search_for_any_song_or_artist" android:layout_row="0" android:layout_gravity="fill">
 
         </SearchView>
-        <androidx.recyclerview.widget.RecyclerView android:layout_row="1" android:layout_gravity="fill">
+        <androidx.recyclerview.widget.RecyclerView android:layout_marginBottom="60dp" android:id="@+id/searchResultRecycleView" android:layout_row="1" android:layout_gravity="fill">
 
         </androidx.recyclerview.widget.RecyclerView>
     </GridLayout>

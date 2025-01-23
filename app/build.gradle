@@ -11,11 +11,13 @@ android {
         minSdk 21
         targetSdk 35
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -29,6 +31,8 @@ android {
 }
 
 dependencies {
+    implementation libs.glide
+    implementation libs.spotify.web.api.java
     implementation libs.core.splashscreen
     implementation libs.appcompat
     implementation libs.material
