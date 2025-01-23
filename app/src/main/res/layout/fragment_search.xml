@@ -2,13 +2,18 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@color/black"
     android:layout_height="match_parent"
     tools:context=".SearchFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="match_parent" android:rowCount="2" android:columnCount="1"
+        tools:ignore="UselessParent">
+        <SearchView android:iconifiedByDefault="false" android:queryHint="@string/search_for_any_song_or_artist" android:layout_row="0" android:layout_gravity="fill">
 
+        </SearchView>
+        <androidx.recyclerview.widget.RecyclerView android:layout_row="1" android:layout_gravity="fill">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </GridLayout>
 </FrameLayout>

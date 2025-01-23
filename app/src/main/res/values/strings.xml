@@ -3,6 +3,6 @@
     <string name="search">Search</string>
     <string name="playlists">Playlists</string>
     <string name="settings">Settings</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="search_for_any_song_or_artist">Search for any song or artist…</string>
 </resources>

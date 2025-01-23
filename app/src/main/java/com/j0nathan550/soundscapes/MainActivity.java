@@ -35,14 +35,29 @@ public class MainActivity extends AppCompatActivity {
 
             if(id == R.id.searchMenuItem)
             {
+                ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                    return insets;
+                });
                 replaceFragment(searchFragment);
             }
             else if (id == R.id.playlistMenuItem)
             {
+                ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(0, 0, 0, 0);
+                    return insets;
+                });
                 replaceFragment(playlistFragment);
             }
             else if (id == R.id.settingsMenuItem)
             {
+                ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(0, 0, 0, 0);
+                    return insets;
+                });
                 replaceFragment(settingsFragment);
             }
 
