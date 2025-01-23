@@ -13,6 +13,7 @@
         android:theme="@style/Theme.SoundScapes"
         tools:targetApi="31">
         <activity
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
