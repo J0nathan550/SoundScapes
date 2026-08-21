@@ -44,7 +44,9 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final seedColor = ref.watch(effectiveSeedColorProvider);
-    final monochrome = ref.watch(themePresetProvider) == AppThemePreset.monochrome;
+    final monochrome =
+        ref.watch(themePresetProvider) == AppThemePreset.monochrome ||
+        isAchromaticColor(seedColor);
     return MaterialApp(
       title: 'SoundScapes',
       debugShowCheckedModeBanner: false,

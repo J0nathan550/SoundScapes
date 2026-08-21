@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/track.dart';
 import '../../../services/service_providers.dart';
 import '../providers/library_providers.dart';
@@ -86,12 +87,15 @@ class _AddToFolderSheet extends ConsumerWidget {
                       onTap: () async {
                         final navigator = Navigator.of(context);
                         final messenger = ScaffoldMessenger.of(context);
+                        final bottomInset = MediaQuery.of(context).padding.bottom;
                         await ref
                             .read(folderRepositoryProvider)
                             .addTrackToFolder(folder.id, track);
                         navigator.pop();
-                        messenger.showSnackBar(
-                          SnackBar(content: Text('Added to ${folder.name}')),
+                        showAppSnackBar(
+                          messenger,
+                          'Added to ${folder.name}',
+                          bottomInset: bottomInset,
                         );
                       },
                     );

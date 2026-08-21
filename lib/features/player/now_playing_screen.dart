@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/duration_format.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../services/service_providers.dart';
 import 'providers/player_providers.dart';
 import 'queue_sheet.dart';
@@ -55,8 +56,10 @@ class NowPlayingScreen extends ConsumerWidget {
                 final messenger = ScaffoldMessenger.of(context);
                 await ref.read(cacheServiceProvider).promoteToDownload(trackId);
                 ref.invalidate(isTrackCachedOnlyProvider(trackId));
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Saved to Downloads')),
+                showAppSnackBar(
+                  messenger,
+                  'Saved to Downloads',
+                  avoidPlayerBar: false,
                 );
               },
             ),

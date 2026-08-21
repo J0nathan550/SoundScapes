@@ -98,6 +98,9 @@ class FolderDetailScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: ReorderableListView.builder(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                  ),
                   itemCount: tracks.length,
                   itemBuilder: (context, index) {
                     final track = tracks[index];

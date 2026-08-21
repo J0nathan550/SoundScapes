@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/widgets/app_snackbar.dart';
 import 'features/library/library_screen.dart';
 import 'features/player/now_playing_bar.dart';
 import 'features/player/providers/player_providers.dart';
@@ -42,9 +43,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     ref.listen(playbackErrorsProvider, (previous, next) {
       final message = next.value;
       if (message == null) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppSnackBar(
+        ScaffoldMessenger.of(context),
+        message,
+        bottomInset: MediaQuery.of(context).padding.bottom,
+      );
     });
 
     return Scaffold(

@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Material's HCT color space treats hue as meaningless once chroma hits
+/// zero, so seeding `ColorScheme.fromSeed` with black, white, or any other
+/// gray produces an arbitrary (often reddish) hue instead of a neutral
+/// scheme. Callers should fall back to `DynamicSchemeVariant.monochrome`
+/// whenever the seed color is achromatic like this.
+bool isAchromaticColor(Color color) => color.r == color.g && color.g == color.b;
+
 enum AppThemePreset {
   violet,
   monochrome,
