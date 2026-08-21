@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/byte_format.dart';
+import '../../core/utils/duration_format.dart';
+import '../../services/playback/sleep_timer_controller.dart';
 import '../../services/service_providers.dart';
+import '../player/widgets/sleep_timer_sheet.dart';
 import 'widgets/theme_color_picker.dart';
 import 'widgets/youtube_login_webview.dart';
 
@@ -69,6 +72,32 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (value) => ref
                 .read(resumePlaybackEnabledProvider.notifier)
                 .setEnabled(value),
+          ),
+          const _SectionHeader('Sleep Timer'),
+          Consumer(
+            builder: (context, ref, _) {
+              final sleepTimer = ref.watch(sleepTimerControllerProvider);
+              return ListTile(
+                leading: const Icon(Icons.bedtime_outlined),
+                title: const Text('Sleep timer'),
+                subtitle: Text(
+                  !sleepTimer.isActive
+                      ? 'Off'
+                      : sleepTimer.mode == SleepTimerMode.endOfTrack
+                      ? 'Ends after this track'
+                      : 'Ends in ${formatDuration(sleepTimer.remaining ?? Duration.zero)}',
+                ),
+                trailing: sleepTimer.isActive
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Cancel timer',
+                        onPressed: () =>
+                            ref.read(sleepTimerControllerProvider.notifier).cancel(),
+                      )
+                    : const Icon(Icons.chevron_right),
+                onTap: () => showSleepTimerSheet(context),
+              );
+            },
           ),
           const _SectionHeader('Storage'),
           Consumer(

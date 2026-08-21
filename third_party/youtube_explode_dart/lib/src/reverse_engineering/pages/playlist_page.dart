@@ -194,6 +194,13 @@ class _InitialData extends InitialData {
               item.getJson<List<dynamic>>('playlistVideoListRenderer/contents');
           if (contents != null) return contents.cast<JsonMap>();
         }
+
+        // Current (2026) YouTube playlist pages list each video as a
+        // "lockupViewModel" directly inside itemSectionRenderer/contents,
+        // instead of the older playlistVideoListRenderer wrapper above.
+        if (itemContents.any((e) => (e as JsonMap).containsKey('lockupViewModel'))) {
+          return itemContents.cast<JsonMap>();
+        }
       }
     }
     return null;
@@ -204,65 +211,89 @@ class _InitialData extends InitialData {
     if (items == null) return const [];
 
     return items
-        .map((item) =>
-            item['playlistVideoRenderer'] as JsonMap? ??
-            item['richItemRenderer']?['content']?['playlistVideoRenderer']
-                as JsonMap?)
+        .map((item) {
+          final legacy = item['playlistVideoRenderer'] as JsonMap? ??
+              item['richItemRenderer']?['content']?['playlistVideoRenderer']
+                  as JsonMap?;
+          if (legacy != null) return _Video(legacy);
+          final lockup = item['lockupViewModel'] as JsonMap?;
+          if (lockup != null) return _Video.lockup(lockup);
+          return null;
+        })
         .nonNulls
-        .map(_Video.new)
         .toList();
   }
 }
 
 class _Video {
   final JsonMap root;
-  _Video(this.root);
+  final bool isLockup;
+  _Video(this.root) : isLockup = false;
+  _Video.lockup(this.root) : isLockup = true;
 
-  String get id => root.getT<String>('videoId')!;
+  String get id => isLockup
+      ? (root.getJson<String>(
+              'rendererContext/commandContext/onTap/innertubeCommand/watchEndpoint/videoId') ??
+          '')
+      : root.getT<String>('videoId')!;
 
-  String get author =>
-      root
-          .getJson<List<dynamic>>('ownerText/runs')
-          ?.cast<Map<dynamic, dynamic>>()
-          .parseRuns() ??
-      root
-          .getJson<List<dynamic>>('shortBylineText/runs')
-          ?.cast<Map<dynamic, dynamic>>()
-          .parseRuns() ??
-      '';
+  String get author => isLockup
+      ? (root.getJson<String>(
+              'metadata/lockupMetadataViewModel/metadata/contentMetadataViewModel/metadataRows/0/metadataParts/0/text/content') ??
+          '')
+      : root
+              .getJson<List<dynamic>>('ownerText/runs')
+              ?.cast<Map<dynamic, dynamic>>()
+              .parseRuns() ??
+          root
+              .getJson<List<dynamic>>('shortBylineText/runs')
+              ?.cast<Map<dynamic, dynamic>>()
+              .parseRuns() ??
+          '';
 
-  String get channelId =>
-      root.getJson<String>(
-          'ownerText/runs/0/navigationEndpoint/browseEndpoint/browseId') ??
-      root.getJson<String>(
-          'shortBylineText/runs/0/navigationEndpoint/browseEndpoint/browseId') ??
-      root.getJson<String>(
-          'shortBylineText/runs/0/navigationEndpoint/showDialogCommand/panelLoadingStrategy/inlineContent/dialogViewModel/customContent/listViewModel/listItems/0/listItemViewModel/rendererContext/commandContext/onTap/innertubeCommand/browseEndpoint/browseId') ??
-      '';
+  String get channelId => isLockup
+      ? (root.getJson<String>(
+              'metadata/lockupMetadataViewModel/image/decoratedAvatarViewModel/rendererContext/commandContext/onTap/innertubeCommand/browseEndpoint/browseId') ??
+          '')
+      : root.getJson<String>(
+              'ownerText/runs/0/navigationEndpoint/browseEndpoint/browseId') ??
+          root.getJson<String>(
+              'shortBylineText/runs/0/navigationEndpoint/browseEndpoint/browseId') ??
+          root.getJson<String>(
+              'shortBylineText/runs/0/navigationEndpoint/showDialogCommand/panelLoadingStrategy/inlineContent/dialogViewModel/customContent/listViewModel/listItems/0/listItemViewModel/rendererContext/commandContext/onTap/innertubeCommand/browseEndpoint/browseId') ??
+          '';
 
-  String get title =>
-      root
-          .getJson<List<dynamic>>('title/runs')
-          ?.cast<Map<dynamic, dynamic>>()
-          .parseRuns() ??
-      '';
+  String get title => isLockup
+      ? (root.getJson<String>('metadata/lockupMetadataViewModel/title/content') ??
+          '')
+      : root
+              .getJson<List<dynamic>>('title/runs')
+              ?.cast<Map<dynamic, dynamic>>()
+              .parseRuns() ??
+          '';
 
-  String get description =>
-      root
-          .getJson<List<dynamic>>('descriptionSnippet')
-          ?.cast<Map<dynamic, dynamic>>()
-          .parseRuns() ??
-      '';
+  String get description => isLockup
+      ? ''
+      : root
+              .getJson<List<dynamic>>('descriptionSnippet')
+              ?.cast<Map<dynamic, dynamic>>()
+              .parseRuns() ??
+          '';
 
-  Duration? get duration =>
-      root.getJson<String>('lengthText/simpleText')?.toDuration();
+  Duration? get duration => isLockup
+      ? root
+          .getJson<String>(
+              'contentImage/thumbnailViewModel/overlays/0/thumbnailBottomOverlayViewModel/badges/0/thumbnailBadgeViewModel/text')
+          ?.toDuration()
+      : root.getJson<String>('lengthText/simpleText')?.toDuration();
 
-  int get viewCount =>
-      root.getJson<String>('viewCountText/simpleText').parseInt() ??
-      _videoInfo?.split('•').elementAtSafe(0)?.stripNonDigits().parseInt() ??
-      0;
+  int get viewCount => isLockup
+      ? 0
+      : root.getJson<String>('viewCountText/simpleText').parseInt() ??
+          _videoInfo?.split('•').elementAtSafe(0)?.stripNonDigits().parseInt() ??
+          0;
 
-  String? get uploadDateRaw => _videoInfo?.split('•').elementAtSafe(1);
+  String? get uploadDateRaw => isLockup ? null : _videoInfo?.split('•').elementAtSafe(1);
 
   String? get _videoInfo => root
       .getJson<List<dynamic>>('videoInfo/runs')

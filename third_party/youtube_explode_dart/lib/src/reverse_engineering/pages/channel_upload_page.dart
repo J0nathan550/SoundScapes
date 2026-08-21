@@ -232,20 +232,35 @@ class _InitialData extends InitialData {
     }
 
     if (isLockup) {
+      // Current (2026) YouTube channel-uploads page renders each upload as a
+      // "lockupViewModel" instead of the older gridVideoRenderer/richItemRenderer
+      // shapes handled above. Its title/duration/thumbnail live under
+      // `metadata.lockupMetadataViewModel` / `contentImage.thumbnailViewModel`
+      // rather than the flat `metadata.primaryText` / `imageOverlays` paths
+      // used for the legacy renderers.
+      final thumbnailSources = video
+          .getJson<List<dynamic>>('contentImage/thumbnailViewModel/image/sources')
+          ?.cast<JsonMap>();
+
       return ChannelVideo(
         VideoId(video.getJson<String>(
             'rendererContext/commandContext/onTap/innertubeCommand/watchEndpoint/videoId')!),
-        video.getJson<String>('metadata/primaryText/content') ?? '',
+        video.getJson<String>('metadata/lockupMetadataViewModel/title/content') ??
+            '',
         video
                 .getJson<String>(
-                    'imageOverlays/0/thumbnailOverlayTimeStatusRenderer/text/simpleText')
+                    'contentImage/thumbnailViewModel/overlays/0/thumbnailBottomOverlayViewModel/badges/0/thumbnailBadgeViewModel/text')
                 ?.toDuration() ??
             Duration.zero,
+        thumbnailSources?.lastOrNull?.getT<String>('url') ?? '',
         video.getJson<String>(
-                'thumbnailViewModel/thumbnailViewModel/image/sources/0/url') ??
+                'metadata/lockupMetadataViewModel/metadata/contentMetadataViewModel/metadataRows/0/metadataParts/1/text/content') ??
             '',
-        video.getJson<String>('metadata/metadataParts/1/text/content') ?? '',
-        video.getJson<String>('metadata/metadataText/content').parseInt() ?? 0,
+        video
+                .getJson<String>(
+                    'metadata/lockupMetadataViewModel/metadata/contentMetadataViewModel/metadataRows/0/metadataParts/0/text/content')
+                .parseInt() ??
+            0,
       );
     }
 

@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/duration_format.dart';
 import '../../core/widgets/app_snackbar.dart';
+import '../../services/playback/sleep_timer_controller.dart';
 import '../../services/service_providers.dart';
 import 'providers/player_providers.dart';
 import 'queue_sheet.dart';
+import 'widgets/sleep_timer_sheet.dart';
 
 class NowPlayingScreen extends ConsumerWidget {
   const NowPlayingScreen({super.key});
@@ -63,6 +65,21 @@ class NowPlayingScreen extends ConsumerWidget {
                 );
               },
             ),
+          Builder(
+            builder: (context) {
+              final sleepTimerActive = ref.watch(sleepTimerControllerProvider).isActive;
+              return IconButton(
+                icon: Icon(
+                  sleepTimerActive ? Icons.bedtime : Icons.bedtime_outlined,
+                ),
+                color: sleepTimerActive
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+                tooltip: 'Sleep timer',
+                onPressed: () => showSleepTimerSheet(context),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.queue_music),
             onPressed: () => showModalBottomSheet(
