@@ -36,6 +36,19 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Compute app version
+        id: appversion
+        shell: bash
+        run: |
+          # Patch version increments once per workflow run, starting at 1.0.0
+          # on run #4 (this workflow's first 3 runs predate this scheme).
+          PATCH=$(( ${{ github.run_number }} - 4 ))
+          if [ "$PATCH" -lt 0 ]; then PATCH=0; fi
+          VERSION="1.0.$PATCH"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_number=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "Building version $VERSION (build ${{ github.run_number }})"
+
       - name: Decode release keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
@@ -50,10 +63,16 @@ jobs:
           EOF
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --build-name=${{ steps.appversion.outputs.version }}
+          --build-number=${{ steps.appversion.outputs.build_number }}
 
       - name: Build release App Bundle
-        run: flutter build appbundle --release
+        run: >
+          flutter build appbundle --release
+          --build-name=${{ steps.appversion.outputs.version }}
+          --build-number=${{ steps.appversion.outputs.build_number }}
 
       - name: Clean up signing material
         if: always()
@@ -68,7 +87,7 @@ jobs:
           elif [ -n "${{ github.event.inputs.tag }}" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=manual-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+            echo "tag=v${{ steps.appversion.outputs.version }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create GitHub Release
