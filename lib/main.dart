@@ -18,6 +18,7 @@ Future<void> main() async {
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.j0nathan550.soundscapes.channel.audio',
       androidNotificationChannelName: 'Playback',
+      androidNotificationIcon: 'drawable/ic_notification',
       androidNotificationOngoing: true,
     ),
   );
