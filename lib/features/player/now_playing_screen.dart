@@ -58,11 +58,7 @@ class NowPlayingScreen extends ConsumerWidget {
                 final messenger = ScaffoldMessenger.of(context);
                 await ref.read(cacheServiceProvider).promoteToDownload(trackId);
                 ref.invalidate(isTrackCachedOnlyProvider(trackId));
-                showAppSnackBar(
-                  messenger,
-                  'Saved to Downloads',
-                  avoidPlayerBar: false,
-                );
+                showAppSnackBar(messenger, 'Saved to Downloads');
               },
             ),
           Builder(

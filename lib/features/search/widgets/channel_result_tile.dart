@@ -20,7 +20,15 @@ class ChannelResultTile extends StatelessWidget {
         child: channel.thumbnailUrl.isEmpty ? const Icon(Icons.person) : null,
       ),
       title: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text('${channel.videoCount} videos'),
+      subtitle: switch (channel.videoCount) {
+        final count? => Text('$count videos'),
+        null when channel.description.isNotEmpty => Text(
+          channel.description,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        null => null,
+      },
       trailing: const Icon(Icons.chevron_right),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(

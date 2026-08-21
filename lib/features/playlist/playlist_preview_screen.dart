@@ -66,6 +66,9 @@ class PlaylistPreviewScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: ListView.builder(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                  ),
                   itemCount: tracks.length,
                   itemBuilder: (context, index) {
                     final track = tracks[index];
@@ -105,7 +108,6 @@ class _SaveAsFolderButtonState extends ConsumerState<_SaveAsFolderButton> {
   Future<void> _save() async {
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
 
     final repo = ref.read(folderRepositoryProvider);
     final folderId = await repo.createFolder(widget.title);
@@ -115,11 +117,7 @@ class _SaveAsFolderButtonState extends ConsumerState<_SaveAsFolderButton> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    showAppSnackBar(
-      messenger,
-      'Saved "${widget.title}" as a folder',
-      bottomInset: bottomInset,
-    );
+    showAppSnackBar(messenger, 'Saved "${widget.title}" as a folder');
   }
 
   @override

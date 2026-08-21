@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../services/service_providers.dart';
 import 'providers/search_providers.dart';
 import 'widgets/channel_result_tile.dart';
 import 'widgets/playlist_result_tile.dart';
@@ -15,7 +16,9 @@ class SearchScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
-  final _controller = TextEditingController();
+  late final _controller = TextEditingController(
+    text: ref.read(searchDraftProvider),
+  );
   final _focusNode = FocusNode();
   bool _hasFocus = false;
 
@@ -43,6 +46,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
     ref.read(searchDraftProvider.notifier).state = trimmed;
     ref.read(submittedQueryProvider.notifier).state = trimmed;
+    ref.read(settingsServiceProvider).setLastSearchQuery(trimmed);
     _focusNode.unfocus();
   }
 
@@ -54,6 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           data: (results) {
             if (results.isNotEmpty) {
               return ListView.builder(
+                padding: const EdgeInsets.only(bottom: 16),
                 itemCount: results.length,
                 itemBuilder: (context, index) =>
                     SearchResultTile(track: results[index]),
@@ -81,6 +86,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               );
             }
             return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 16),
               itemCount: results.length,
               itemBuilder: (context, index) =>
                   ChannelResultTile(channel: results[index]),
@@ -103,6 +109,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               );
             }
             return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 16),
               itemCount: results.length,
               itemBuilder: (context, index) =>
                   PlaylistResultTile(playlist: results[index]),
@@ -170,8 +177,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ),
               ],
               selected: {searchTab},
-              onSelectionChanged: (selected) =>
-                  ref.read(searchTabProvider.notifier).state = selected.first,
+              onSelectionChanged: (selected) {
+                ref.read(searchTabProvider.notifier).state = selected.first;
+                ref
+                    .read(settingsServiceProvider)
+                    .setLastSearchTabIndex(selected.first.index);
+              },
             ),
           ),
           Expanded(
@@ -222,6 +233,7 @@ class _TrendingList extends ConsumerWidget {
           return const Center(child: Text('Search for a song or video'));
         }
         return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 16),
           itemCount: tracks.length + 1,
           itemBuilder: (context, index) {
             if (index == 0) {

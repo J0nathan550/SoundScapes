@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/providers/ui_metrics_provider.dart';
 import '../../../core/utils/duration_format.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../services/playback/sleep_timer_controller.dart';
@@ -21,13 +22,13 @@ class SleepTimerSheet extends ConsumerWidget {
 
   void _start(BuildContext context, WidgetRef ref, Duration duration) {
     final messenger = ScaffoldMessenger.of(context);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final chromeHeight = ref.read(bottomChromeHeightProvider);
     ref.read(sleepTimerControllerProvider.notifier).startDuration(duration);
     Navigator.of(context).pop();
     showAppSnackBar(
       messenger,
       'Sleep timer set for ${presetLabel(duration)}',
-      bottomInset: bottomInset,
+      bottomChromeHeight: chromeHeight,
     );
   }
 
@@ -70,13 +71,13 @@ class SleepTimerSheet extends ConsumerWidget {
               title: const Text('End of current track'),
               onTap: () {
                 final messenger = ScaffoldMessenger.of(context);
-                final bottomInset = MediaQuery.of(context).padding.bottom;
+                final chromeHeight = ref.read(bottomChromeHeightProvider);
                 ref.read(sleepTimerControllerProvider.notifier).startEndOfTrack();
                 Navigator.of(context).pop();
                 showAppSnackBar(
                   messenger,
                   'Sleep timer set for the end of this track',
-                  bottomInset: bottomInset,
+                  bottomChromeHeight: chromeHeight,
                 );
               },
             ),

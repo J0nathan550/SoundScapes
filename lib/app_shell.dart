@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/providers/ui_metrics_provider.dart';
 import 'core/widgets/app_snackbar.dart';
 import 'features/library/library_screen.dart';
 import 'features/player/now_playing_bar.dart';
@@ -18,6 +19,8 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
+  final _playerBarKey = GlobalKey();
+  final _navBarKey = GlobalKey();
 
   static const _screens = [
     SearchScreen(),
@@ -35,6 +38,27 @@ class _AppShellState extends ConsumerState<AppShell> {
         ref.read(playbackRepositoryProvider),
         ref.read(trackRepositoryProvider),
       );
+      _measureBottomChrome();
+    });
+  }
+
+  void _measureBottomChrome() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final playerHeight =
+          (_playerBarKey.currentContext?.findRenderObject() as RenderBox?)
+              ?.size
+              .height ??
+          0;
+      final navHeight =
+          (_navBarKey.currentContext?.findRenderObject() as RenderBox?)
+              ?.size
+              .height ??
+          0;
+      final height = playerHeight + navHeight;
+      if (ref.read(bottomChromeHeightProvider) != height) {
+        ref.read(bottomChromeHeightProvider.notifier).state = height;
+      }
     });
   }
 
@@ -46,18 +70,20 @@ class _AppShellState extends ConsumerState<AppShell> {
       showAppSnackBar(
         ScaffoldMessenger.of(context),
         message,
-        bottomInset: MediaQuery.of(context).padding.bottom,
+        bottomChromeHeight: ref.read(bottomChromeHeightProvider),
       );
     });
+    ref.listen(currentMediaItemProvider, (previous, next) => _measureBottomChrome());
 
     return Scaffold(
       body: Column(
         children: [
           Expanded(child: IndexedStack(index: _index, children: _screens)),
-          const NowPlayingBar(),
+          NowPlayingBar(key: _playerBarKey),
         ],
       ),
       bottomNavigationBar: NavigationBar(
+        key: _navBarKey,
         selectedIndex: _index,
         onDestinationSelected: (index) => setState(() => _index = index),
         destinations: const [

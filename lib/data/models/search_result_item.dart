@@ -2,7 +2,10 @@ class ChannelResult {
   final String id;
   final String name;
   final String description;
-  final int videoCount;
+
+  /// Null when YouTube didn't report a genuine video count for this result
+  /// (some channel cards show a subscriber count in that slot instead).
+  final int? videoCount;
   final String thumbnailUrl;
 
   const ChannelResult({

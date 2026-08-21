@@ -49,6 +49,7 @@ class LibraryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Library')),
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 96),
         children: [
           ListTile(
             leading: CircleAvatar(

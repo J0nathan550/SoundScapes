@@ -8,11 +8,18 @@ import '../../../services/service_providers.dart';
 
 enum SearchTab { videos, channels, playlists }
 
-final searchTabProvider = StateProvider<SearchTab>((ref) => SearchTab.videos);
+final searchTabProvider = StateProvider<SearchTab>((ref) {
+  final index = ref.read(settingsServiceProvider).lastSearchTabIndex;
+  return SearchTab.values[index.clamp(0, SearchTab.values.length - 1)];
+});
 
-final searchDraftProvider = StateProvider<String>((ref) => '');
+final searchDraftProvider = StateProvider<String>(
+  (ref) => ref.read(settingsServiceProvider).lastSearchQuery,
+);
 
-final submittedQueryProvider = StateProvider<String>((ref) => '');
+final submittedQueryProvider = StateProvider<String>(
+  (ref) => ref.read(settingsServiceProvider).lastSearchQuery,
+);
 
 final searchSuggestionsProvider = FutureProvider.autoDispose<List<String>>((
   ref,

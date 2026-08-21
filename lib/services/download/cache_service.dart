@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -11,8 +12,14 @@ import 'ytdlp_service.dart';
 class CacheService {
   final YtDlpService _ytDlp;
   final TrackRepository _trackRepository;
+  final _changes = StreamController<void>.broadcast();
 
   CacheService(this._ytDlp, this._trackRepository);
+
+  /// Fires whenever a track is cached or the cache is cleared, so listeners
+  /// (like the cache-size display in Settings) can stay up to date without
+  /// waiting for the app to restart.
+  Stream<void> get changes => _changes.stream;
 
   Future<Directory> _cacheDir() async {
     final supportDir = await getApplicationSupportDirectory();
@@ -46,6 +53,7 @@ class CacheService {
       outputPathNoExt: outputPathNoExt,
       onProgress: onProgress,
     );
+    _changes.add(null);
     return result.filePath;
   }
 
@@ -65,6 +73,7 @@ class CacheService {
     await for (final entity in dir.list()) {
       if (entity is File) await entity.delete();
     }
+    _changes.add(null);
   }
 
   Future<void> promoteToDownload(String trackId) async {
@@ -90,5 +99,6 @@ class CacheService {
       container: ext.replaceFirst('.', ''),
       fileSizeBytes: await movedFile.length(),
     );
+    _changes.add(null);
   }
 }

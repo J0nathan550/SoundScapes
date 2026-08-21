@@ -137,7 +137,6 @@ class SettingsScreen extends ConsumerWidget {
                   );
                   if (confirmed == true) {
                     await ref.read(cacheServiceProvider).clearCache();
-                    ref.invalidate(cacheSizeBytesProvider);
                   }
                 },
               );

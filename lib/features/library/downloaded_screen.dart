@@ -18,6 +18,9 @@ class DownloadedScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Downloaded')),
       body: ListView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 16,
+        ),
         children: [
           if (activeDownloads.isNotEmpty) ...[
             const Padding(

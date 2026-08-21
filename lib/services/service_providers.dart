@@ -161,8 +161,12 @@ final cacheServiceProvider = Provider<CacheService>((ref) {
   return CacheService(ref.watch(ytDlpServiceProvider), ref.watch(trackRepositoryProvider));
 });
 
-final cacheSizeBytesProvider = FutureProvider<int>((ref) {
-  return ref.watch(cacheServiceProvider).cacheSizeBytes();
+final cacheSizeBytesProvider = StreamProvider<int>((ref) async* {
+  final service = ref.watch(cacheServiceProvider);
+  yield await service.cacheSizeBytes();
+  await for (final _ in service.changes) {
+    yield await service.cacheSizeBytes();
+  }
 });
 
 class PreparingTrackIdController extends Notifier<String?> {

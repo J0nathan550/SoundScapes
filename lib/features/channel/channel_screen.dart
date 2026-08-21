@@ -84,6 +84,9 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
           }
           return ListView.builder(
             controller: _scrollController,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+            ),
             itemCount: state.tracks.length + (state.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= state.tracks.length) {

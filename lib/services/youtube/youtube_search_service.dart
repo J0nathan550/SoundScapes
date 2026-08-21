@@ -22,7 +22,7 @@ class YoutubeSearchService {
     id: c.id.value,
     name: c.name,
     description: c.description,
-    videoCount: c.videoCount,
+    videoCount: c.videoCount < 0 ? null : c.videoCount,
     thumbnailUrl: _bestThumbnailUrl(c.thumbnails),
   );
 

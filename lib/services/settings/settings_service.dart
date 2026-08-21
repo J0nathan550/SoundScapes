@@ -13,6 +13,8 @@ class SettingsService {
   static const _autoplayKey = 'settings.autoplayEnabled';
   static const _resumePlaybackKey = 'settings.resumePlaybackEnabled';
   static const _playbackSnapshotKey = 'settings.playbackSnapshot';
+  static const _lastSearchQueryKey = 'settings.lastSearchQuery';
+  static const _lastSearchTabIndexKey = 'settings.lastSearchTabIndex';
 
   final SharedPreferences _prefs;
 
@@ -68,4 +70,14 @@ class SettingsService {
 
   Future<void> savePlaybackSnapshot(PlaybackSnapshot snapshot) =>
       _prefs.setString(_playbackSnapshotKey, json.encode(snapshot.toJson()));
+
+  String get lastSearchQuery => _prefs.getString(_lastSearchQueryKey) ?? '';
+
+  Future<void> setLastSearchQuery(String query) =>
+      _prefs.setString(_lastSearchQueryKey, query);
+
+  int get lastSearchTabIndex => _prefs.getInt(_lastSearchTabIndexKey) ?? 0;
+
+  Future<void> setLastSearchTabIndex(int index) =>
+      _prefs.setInt(_lastSearchTabIndexKey, index);
 }
