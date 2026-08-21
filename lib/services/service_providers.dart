@@ -1,0 +1,207 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+
+import '../core/theme/theme_presets.dart';
+import '../data/db/app_database.dart';
+import 'auth/youtube_auth_service.dart';
+import 'download/cache_service.dart';
+import 'download/ytdlp_service.dart';
+import 'library/folder_repository.dart';
+import 'library/track_repository.dart';
+import 'playback/audio_player_handler.dart';
+import 'playback/autoplay_controller.dart';
+import 'playback/playback_persistence_controller.dart';
+import 'playback/playback_repository.dart';
+import 'settings/settings_service.dart';
+import 'youtube/authenticated_youtube_http_client.dart';
+import 'youtube/youtube_search_service.dart';
+
+final audioHandlerProvider = Provider<AudioPlayerHandler>((ref) {
+  throw UnimplementedError('audioHandlerProvider must be overridden in main()');
+});
+
+final settingsServiceProvider = Provider<SettingsService>((ref) {
+  throw UnimplementedError('settingsServiceProvider must be overridden in main()');
+});
+
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
+
+class ThemeModeController extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() => ref.watch(settingsServiceProvider).themeMode;
+
+  void setThemeMode(ThemeMode mode) {
+    state = mode;
+    ref.read(settingsServiceProvider).setThemeMode(mode);
+  }
+}
+
+final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
+  ThemeModeController.new,
+);
+
+class ThemePresetController extends Notifier<AppThemePreset> {
+  @override
+  AppThemePreset build() => ref.watch(settingsServiceProvider).themePreset;
+
+  void setPreset(AppThemePreset preset) {
+    state = preset;
+    ref.read(settingsServiceProvider).setThemePreset(preset);
+  }
+}
+
+final themePresetProvider = NotifierProvider<ThemePresetController, AppThemePreset>(
+  ThemePresetController.new,
+);
+
+class CustomThemeColorController extends Notifier<Color> {
+  @override
+  Color build() => ref.watch(settingsServiceProvider).customThemeColor;
+
+  void setColor(Color color) {
+    state = color;
+    ref.read(settingsServiceProvider).setCustomThemeColor(color);
+  }
+}
+
+final customThemeColorProvider = NotifierProvider<CustomThemeColorController, Color>(
+  CustomThemeColorController.new,
+);
+
+final effectiveSeedColorProvider = Provider<Color>((ref) {
+  final preset = ref.watch(themePresetProvider);
+  return preset.seedColor ?? ref.watch(customThemeColorProvider);
+});
+
+class AutoplaySettingController extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).autoplayEnabled;
+
+  void setEnabled(bool value) {
+    state = value;
+    ref.read(settingsServiceProvider).setAutoplayEnabled(value);
+  }
+}
+
+final autoplayEnabledProvider = NotifierProvider<AutoplaySettingController, bool>(
+  AutoplaySettingController.new,
+);
+
+class ResumePlaybackController extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).resumePlaybackEnabled;
+
+  void setEnabled(bool value) {
+    state = value;
+    ref.read(settingsServiceProvider).setResumePlaybackEnabled(value);
+  }
+}
+
+final resumePlaybackEnabledProvider =
+    NotifierProvider<ResumePlaybackController, bool>(
+      ResumePlaybackController.new,
+    );
+
+final youtubeAuthServiceProvider = Provider<YoutubeAuthService>((ref) {
+  return YoutubeAuthService();
+});
+
+class YoutubeAuthCookieController extends AsyncNotifier<String?> {
+  @override
+  Future<String?> build() {
+    return ref.watch(youtubeAuthServiceProvider).loadCookie();
+  }
+
+  Future<void> signIn(String cookie) async {
+    await ref.read(youtubeAuthServiceProvider).saveCookie(cookie);
+    state = AsyncData(cookie);
+  }
+
+  Future<void> signOut() async {
+    await ref.read(youtubeAuthServiceProvider).signOut();
+    state = const AsyncData(null);
+  }
+}
+
+final youtubeAuthCookieProvider =
+    AsyncNotifierProvider<YoutubeAuthCookieController, String?>(
+      YoutubeAuthCookieController.new,
+    );
+
+final youtubeExplodeProvider = Provider<YoutubeExplode>((ref) {
+  final cookie = ref.watch(youtubeAuthCookieProvider).value;
+  final client = cookie == null
+      ? YoutubeHttpClient()
+      : AuthenticatedYoutubeHttpClient(cookie);
+  final yt = YoutubeExplode(httpClient: client);
+  ref.onDispose(yt.close);
+  return yt;
+});
+
+final youtubeSearchServiceProvider = Provider<YoutubeSearchService>((ref) {
+  return YoutubeSearchService(ref.watch(youtubeExplodeProvider));
+});
+
+final folderRepositoryProvider = Provider<FolderRepository>((ref) {
+  return FolderRepository(ref.watch(appDatabaseProvider));
+});
+
+final trackRepositoryProvider = Provider<TrackRepository>((ref) {
+  return TrackRepository(ref.watch(appDatabaseProvider));
+});
+
+final ytDlpServiceProvider = Provider<YtDlpService>((ref) => YtDlpService());
+
+final cacheServiceProvider = Provider<CacheService>((ref) {
+  return CacheService(ref.watch(ytDlpServiceProvider), ref.watch(trackRepositoryProvider));
+});
+
+final cacheSizeBytesProvider = FutureProvider<int>((ref) {
+  return ref.watch(cacheServiceProvider).cacheSizeBytes();
+});
+
+class PreparingTrackIdController extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  set value(String? id) => state = id;
+}
+
+final preparingTrackIdProvider = NotifierProvider<PreparingTrackIdController, String?>(
+  PreparingTrackIdController.new,
+);
+
+final playbackRepositoryProvider = Provider<PlaybackRepository>((ref) {
+  return PlaybackRepository(
+    ref.watch(audioHandlerProvider),
+    ref.watch(cacheServiceProvider),
+    ref.watch(trackRepositoryProvider),
+    onPreparingChanged: (id) => ref.read(preparingTrackIdProvider.notifier).value = id,
+  );
+});
+
+final playbackPersistenceControllerProvider =
+    Provider<PlaybackPersistenceController>((ref) {
+      final controller = PlaybackPersistenceController(
+        ref.watch(audioHandlerProvider),
+        ref.watch(settingsServiceProvider),
+      );
+      ref.onDispose(controller.dispose);
+      return controller;
+    });
+
+final autoplayControllerProvider = Provider<AutoplayController>((ref) {
+  final controller = AutoplayController(
+    ref.watch(audioHandlerProvider),
+    ref.watch(youtubeSearchServiceProvider),
+    ref.watch(playbackRepositoryProvider),
+    ref.watch(settingsServiceProvider),
+  );
+  ref.onDispose(controller.dispose);
+  return controller;
+});

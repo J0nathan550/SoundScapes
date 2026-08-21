@@ -1,0 +1,46 @@
+name: soundscapes
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_riverpod: ^3.4.2
+  youtube_explode_dart: ^3.1.0
+  http: ^1.2.0
+  drift: ^2.34.2
+  drift_flutter: ^0.3.1
+  path_provider: ^2.1.4
+  path: ^1.9.0
+  just_audio: ^0.10.6
+  audio_service: ^0.18.19
+  audio_session: ^0.2.4
+  rxdart: ^0.28.0
+  cached_network_image: ^3.4.1
+  permission_handler: ^13.0.1
+  shared_preferences: ^2.3.0
+  flutter_secure_storage: ^9.2.2
+  webview_flutter: ^4.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  drift_dev: ^2.34.2
+
+# Vendored fix for a NoSuchMethodError in youtube_explode_dart 3.1.0 (latest on
+# pub.dev) when a search result's view count is expressed as multiple text
+# "runs" instead of simpleText (e.g. livestreams showing "N watching") —
+# see third_party/youtube_explode_dart/lib/src/reverse_engineering/pages/search_page.dart.
+dependency_overrides:
+  youtube_explode_dart:
+    path: third_party/youtube_explode_dart
+
+flutter:
+  uses-material-design: true
