@@ -69,6 +69,12 @@ android {
                 // without a keystore. CI always provides key.properties.
                 signingConfigs.getByName("debug")
             }
+            // R8 shrinking (enabled by default by the Flutter Gradle plugin) breaks
+            // youtubedl-android's reflection-based Python/yt-dlp bridge at runtime
+            // without library-specific keep rules. Disabled since code size isn't a
+            // concern next to the ~150MB of bundled native binaries anyway.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
