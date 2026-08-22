@@ -29,14 +29,37 @@ class DownloadedScreen extends ConsumerWidget {
         children: [
           if (!batchSummary.isEmpty) _BatchSummaryHeader(summary: batchSummary),
           if (activeDownloads.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(
-                'In progress',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'In progress',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  if (activeDownloads.any((t) => t.status != DownloadStatus.failed))
+                    TextButton(
+                      onPressed: () =>
+                          ref.read(downloadQueueControllerProvider.notifier).cancelAll(),
+                      child: const Text('Cancel all'),
+                    ),
+                ],
               ),
             ),
             for (final task in activeDownloads) _ActiveDownloadTile(task: task),
+            if (activeDownloads.any((t) => t.status == DownloadStatus.failed))
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () =>
+                        ref.read(downloadQueueControllerProvider.notifier).clearFailed(),
+                    child: const Text('Clear failed'),
+                  ),
+                ),
+              ),
             const Divider(),
           ],
           downloadedAsync.when(
@@ -133,16 +156,23 @@ class _ActiveDownloadTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isFailed = task.status == DownloadStatus.failed;
+    final isQueued = task.status == DownloadStatus.queued;
     final devMode = ref.watch(devModeEnabledProvider);
     final errorText = devMode ? task.rawErrorMessage : task.errorMessage;
     return ListTile(
       leading: Icon(
-        isFailed ? Icons.error_outline : Icons.downloading,
+        isFailed
+            ? Icons.error_outline
+            : isQueued
+            ? Icons.schedule
+            : Icons.downloading,
         color: isFailed ? Theme.of(context).colorScheme.error : null,
       ),
       title: Text(task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: isFailed
           ? Text(errorText ?? 'Download failed')
+          : isQueued
+          ? const Text('Waiting…')
           : LinearProgressIndicator(
               value: task.progressPercent == null ? null : task.progressPercent! / 100,
             ),

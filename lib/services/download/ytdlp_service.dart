@@ -41,4 +41,11 @@ class YtDlpService {
       _progressCallbacks.remove(videoId);
     }
   }
+
+  /// Kills the native yt-dlp process for [videoId], if one is running. The
+  /// in-flight [downloadAudio] call for it will then throw.
+  Future<void> cancelDownload(String videoId) async {
+    _progressCallbacks.remove(videoId);
+    await _channel.invokeMethod('cancel', {'videoId': videoId});
+  }
 }

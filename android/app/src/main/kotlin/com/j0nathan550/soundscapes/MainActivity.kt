@@ -20,6 +20,7 @@ class MainActivity : AudioServiceActivity() {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "downloadAudio" -> handleDownloadAudio(call, channel, result)
+                "cancel" -> handleCancel(call, result)
                 else -> result.notImplemented()
             }
         }
@@ -114,6 +115,24 @@ class MainActivity : AudioServiceActivity() {
             } catch (e: Exception) {
                 runOnUiThread { result.error("ytdlp_error", e.message, null) }
             }
+        }
+    }
+
+    private fun handleCancel(
+        call: io.flutter.plugin.common.MethodCall,
+        result: MethodChannel.Result,
+    ) {
+        val videoId = call.argument<String>("videoId")
+        if (videoId.isNullOrBlank()) {
+            result.error("bad_args", "videoId is required", null)
+            return
+        }
+        thread {
+            // Kills the process youtubedl-android tracks under this id (the same
+            // id passed as execute()'s processId in handleDownloadAudio), which
+            // makes the blocked execute() call there throw CanceledException.
+            val destroyed = YoutubeDL.getInstance().destroyProcessById(videoId)
+            runOnUiThread { result.success(destroyed) }
         }
     }
 

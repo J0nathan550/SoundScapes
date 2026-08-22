@@ -62,6 +62,22 @@ class YoutubeSearchService {
   Future<ChannelUploadsList> getChannelUploadsPage(String channelId) =>
       _yt.channels.getUploadsFromPage(channelId);
 
+  /// All of a channel's uploads, fetched page by page — unlike
+  /// [getChannelUploadsPage] (which the channel screen pages through
+  /// on-demand as the user scrolls), this walks every page up front. Used
+  /// for "save channel as folder", mirroring [getPlaylistVideos].
+  Stream<Video> getAllChannelUploads(String channelId) async* {
+    var page = await _yt.channels.getUploadsFromPage(channelId);
+    while (true) {
+      for (final video in page) {
+        yield video;
+      }
+      final next = await page.nextPage();
+      if (next == null) break;
+      page = next;
+    }
+  }
+
   Stream<Video> getPlaylistVideos(String playlistId) =>
       _yt.playlists.getVideos(playlistId);
 

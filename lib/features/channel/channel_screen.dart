@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/widgets/app_snackbar.dart';
 import '../../services/service_providers.dart';
 import '../library/widgets/track_list_tile.dart';
 import '../player/now_playing_bar.dart';
@@ -77,6 +78,13 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
               ),
           ],
         ),
+        actions: [
+          if (uploadsAsync.value case final state? when state.tracks.isNotEmpty)
+            _SaveChannelAsFolderButton(
+              channelId: widget.channelId,
+              channelName: widget.channelName,
+            ),
+        ],
       ),
       bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
       body: uploadsAsync.when(
@@ -111,6 +119,67 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Failed to load channel: $e')),
       ),
+    );
+  }
+}
+
+class _SaveChannelAsFolderButton extends ConsumerStatefulWidget {
+  final String channelId;
+  final String channelName;
+
+  const _SaveChannelAsFolderButton({
+    required this.channelId,
+    required this.channelName,
+  });
+
+  @override
+  ConsumerState<_SaveChannelAsFolderButton> createState() =>
+      _SaveChannelAsFolderButtonState();
+}
+
+class _SaveChannelAsFolderButtonState extends ConsumerState<_SaveChannelAsFolderButton> {
+  bool _saving = false;
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(youtubeSearchServiceProvider);
+    final repo = ref.read(folderRepositoryProvider);
+
+    try {
+      // The channel screen only paginates uploads on-demand as the user
+      // scrolls, so unlike the playlist "save as folder" button, this can't
+      // reuse already-loaded tracks — it walks every upload page itself.
+      final folderId = await repo.createFolder(widget.channelName);
+      await for (final video in service.getAllChannelUploads(widget.channelId)) {
+        await repo.addTrackToFolder(folderId, service.videoToTrack(video));
+      }
+      if (!mounted) return;
+      showAppSnackBar(messenger, 'Saved "${widget.channelName}" as a folder');
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(messenger, 'Failed to save channel as a folder: $e');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_saving) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    return IconButton(
+      tooltip: 'Save as folder',
+      icon: const Icon(Icons.playlist_add),
+      onPressed: _save,
     );
   }
 }

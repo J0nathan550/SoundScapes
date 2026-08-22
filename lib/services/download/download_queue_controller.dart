@@ -20,6 +20,12 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
   Set<String> _batchTrackIds = {};
   Set<String> get batchTrackIds => _batchTrackIds;
 
+  /// Ids cancelAll() has asked to stop — consumed exactly once by whichever
+  /// code path notices it next (the queued-but-not-started guard below, or
+  /// the catch block for one that was mid-download when cancelled), so a
+  /// track can never get stuck "cancelled" for a later, unrelated download.
+  final Set<String> _cancelledTrackIds = {};
+
   void _extendBatch(Iterable<String> trackIds) {
     final anyActive = state.values.any(
       (t) => t.status == DownloadStatus.downloading || t.status == DownloadStatus.queued,
@@ -33,6 +39,7 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
   Future<void> download(Track track, {bool joinBatch = true}) async {
     if (state[track.id]?.status == DownloadStatus.downloading) return;
     if (track.isDownloaded) return;
+    if (_cancelledTrackIds.remove(track.id)) return;
     if (joinBatch) _extendBatch([track.id]);
 
     state = {
@@ -78,6 +85,10 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
         );
       }
 
+      // The download can finish successfully in the small window between
+      // cancelAll() issuing the kill and it actually landing — either way
+      // this attempt is done, so the flag no longer applies.
+      _cancelledTrackIds.remove(track.id);
       state = {
         ...state,
         track.id: (state[track.id] ??
@@ -89,6 +100,13 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
             .copyWith(status: DownloadStatus.complete),
       };
     } catch (e) {
+      if (_cancelledTrackIds.remove(track.id)) {
+        // Expected: cancelAll() killed the native process, which is what
+        // threw here. Drop it instead of surfacing it as a failure.
+        final next = {...state}..remove(track.id);
+        state = next;
+        return;
+      }
       final formatted = friendlyErrorFrom(e);
       state = {
         ...state,
@@ -111,6 +129,17 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
     final pending = tracks.where((t) => !t.isDownloaded).toList();
     if (pending.isEmpty) return;
     _extendBatch(pending.map((t) => t.id));
+    // `download()` only creates a task entry once a track's turn actually
+    // starts (they run sequentially below), so without this, every track
+    // still waiting in line is invisible to the batch summary — "remaining"
+    // would read as just the single one currently downloading instead of
+    // the whole queue. Seed them all as queued up front instead.
+    state = {
+      ...state,
+      for (final t in pending)
+        if (state[t.id]?.status != DownloadStatus.downloading)
+          t.id: DownloadTask(trackId: t.id, title: t.title, status: DownloadStatus.queued),
+    };
     for (final track in pending) {
       await download(track, joinBatch: false);
     }
@@ -118,6 +147,45 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
 
   void dismiss(String trackId) {
     final next = {...state}..remove(trackId);
+    state = next;
+  }
+
+  /// Stops every queued/downloading track. Queued ones (no native process
+  /// running yet) are dropped immediately; downloading ones are killed
+  /// natively, with `download()`'s catch block removing their entry once
+  /// that lands.
+  Future<void> cancelAll() async {
+    final toCancel = state.entries
+        .where(
+          (e) =>
+              e.value.status == DownloadStatus.downloading ||
+              e.value.status == DownloadStatus.queued,
+        )
+        .toList();
+    if (toCancel.isEmpty) return;
+
+    for (final entry in toCancel) {
+      _cancelledTrackIds.add(entry.key);
+    }
+
+    final next = {...state};
+    for (final entry in toCancel) {
+      if (entry.value.status == DownloadStatus.queued) {
+        next.remove(entry.key);
+      }
+    }
+    state = next;
+
+    final ytDlp = ref.read(ytDlpServiceProvider);
+    for (final entry in toCancel) {
+      if (entry.value.status == DownloadStatus.downloading) {
+        await ytDlp.cancelDownload(entry.key);
+      }
+    }
+  }
+
+  void clearFailed() {
+    final next = {...state}..removeWhere((_, task) => task.status == DownloadStatus.failed);
     state = next;
   }
 }
