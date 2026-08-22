@@ -6,12 +6,15 @@ import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../../core/utils/error_format.dart';
+import '../../data/models/playback_error_event.dart';
+
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player = AudioPlayer();
   final Expando<MediaItem> _mediaItemExpando = Expando<MediaItem>();
-  final _playbackErrors = StreamController<String>.broadcast();
+  final _playbackErrors = StreamController<PlaybackErrorEvent>.broadcast();
 
-  Stream<String> get playbackErrors => _playbackErrors.stream;
+  Stream<PlaybackErrorEvent> get playbackErrors => _playbackErrors.stream;
 
   Stream<void> get queueCompleted => _player.processingStateStream
       .where((state) => state == ProcessingState.completed);
@@ -20,15 +23,15 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     _init();
   }
 
-  void reportError(String message) {
-    debugPrint('AudioPlayerHandler.reportError: $message');
+  void reportError(PlaybackErrorEvent event) {
+    debugPrint('AudioPlayerHandler.reportError: ${event.raw}');
     playbackState.add(
       playbackState.value.copyWith(
         playing: false,
         processingState: AudioProcessingState.idle,
       ),
     );
-    _playbackErrors.add(message);
+    _playbackErrors.add(event);
   }
 
   Future<void> _init() async {
@@ -43,13 +46,21 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
           processingState: AudioProcessingState.idle,
         ),
       );
+      final title = mediaItem.value?.title ?? 'track';
+      final raw = 'Couldn\'t play "$title": ${error.message}';
       _playbackErrors.add(
-        'Couldn\'t play "${mediaItem.value?.title ?? 'track'}": ${error.message}',
+        PlaybackErrorEvent(
+          friendly: 'Couldn\'t play "$title": ${friendlyErrorFrom(error.message ?? error).friendly}',
+          raw: raw,
+        ),
       );
     });
 
     _effectiveSequence
-        .map((sequence) => sequence.map((s) => _mediaItemExpando[s]!).toList())
+        .map((sequence) => sequence
+            .map((s) => _mediaItemExpando[s])
+            .whereType<MediaItem>()
+            .toList())
         .pipe(queue);
 
     Rx.combineLatest4<int?, List<MediaItem>, bool, List<int>?, MediaItem?>(
@@ -115,6 +126,14 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
     await _player.addAudioSources(mediaItems.map(_itemToSource).toList());
+  }
+
+  /// Inserts [mediaItem] into the queue at [index] (e.g. 0 to place it right
+  /// before whatever's currently playing). just_audio adjusts the current
+  /// playback position to keep pointing at the same track, so this doesn't
+  /// interrupt playback.
+  Future<void> insertQueueItemAt(int index, MediaItem mediaItem) async {
+    await _player.insertAudioSource(index, _itemToSource(mediaItem));
   }
 
   @override

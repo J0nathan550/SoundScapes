@@ -8,6 +8,12 @@ class AppConstants {
 
   static const String cacheSubdirName = 'cache_audio';
 
+  static const String updateApkSubdirName = 'updates';
+
+  static const String githubOwner = 'J0nathan550';
+
+  static const String githubRepo = 'SoundScapes';
+
   static const Duration suggestionsDebounce = Duration(milliseconds: 300);
 
   static const List<Duration> sleepTimerPresets = [

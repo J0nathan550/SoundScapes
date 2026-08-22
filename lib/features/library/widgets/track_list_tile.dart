@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/duration_format.dart';
+import '../../../core/widgets/playing_indicator.dart';
 import '../../../data/models/track.dart';
 import '../../../services/service_providers.dart';
+import '../../player/providers/player_providers.dart';
 
 class TrackListTile extends ConsumerWidget {
   final Track track;
@@ -24,10 +26,13 @@ class TrackListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preparing = ref.watch(preparingTrackIdProvider) == track.id;
+    final preparing = ref.watch(preparingTrackIdsProvider).contains(track.id);
+    final isNowPlaying = ref.watch(currentTrackIdProvider) == track.id;
+    final isPlaying = isNowPlaying && ref.watch(isPlayingProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return ListTile(
-      selected: selected,
+      selected: selected || isNowPlaying,
       leading: SizedBox(
         width: 48,
         height: 48,
@@ -55,12 +60,25 @@ class TrackListTile extends ConsumerWidget {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 ),
+              )
+            else if (isNowPlaying)
+              Container(
+                color: colorScheme.primary.withValues(alpha: 0.55),
+                alignment: Alignment.center,
+                child: PlayingIndicator(animate: isPlaying, size: 20),
               ),
             ?leadingOverlay,
           ],
         ),
       ),
-      title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text(
+        track.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: isNowPlaying
+            ? TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600)
+            : null,
+      ),
       subtitle: Text(
         preparing
             ? 'Preparing…'

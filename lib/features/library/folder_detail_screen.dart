@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/widgets/confirm_dialog.dart';
 import '../../data/models/download_task.dart';
 import '../../data/models/folder.dart';
 import '../../data/models/track.dart';
 import '../../services/download/download_queue_controller.dart';
 import '../../services/service_providers.dart';
+import '../player/now_playing_bar.dart';
 import 'providers/library_providers.dart';
 import 'widgets/like_button.dart';
 import 'widgets/track_list_tile.dart';
@@ -17,26 +19,13 @@ class FolderDetailScreen extends ConsumerWidget {
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final navigator = Navigator.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete folder?'),
-        content: Text(
-          'This removes "${folder.name}" but keeps any downloaded tracks.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete folder?',
+      message: 'This removes "${folder.name}" but keeps any downloaded tracks.',
+      confirmLabel: 'Delete',
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await ref.read(folderRepositoryProvider).deleteFolder(folder.id);
       navigator.pop();
     }
@@ -60,6 +49,7 @@ class FolderDetailScreen extends ConsumerWidget {
             ),
         ],
       ),
+      bottomNavigationBar: const NowPlayingBar(),
       body: tracksAsync.when(
         data: (tracks) {
           if (tracks.isEmpty) {
@@ -111,6 +101,12 @@ class FolderDetailScreen extends ConsumerWidget {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 16),
                         child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) => showConfirmDialog(
+                        context,
+                        title: 'Remove from folder?',
+                        message: 'Remove "${track.title}" from "${folder.name}"?',
+                        confirmLabel: 'Remove',
                       ),
                       onDismissed: (_) => ref
                           .read(folderRepositoryProvider)

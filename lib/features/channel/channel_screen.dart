@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/service_providers.dart';
 import '../library/widgets/track_list_tile.dart';
+import '../player/now_playing_bar.dart';
 import '../search/widgets/track_actions_row.dart';
 import 'providers/channel_providers.dart';
 
@@ -77,6 +78,7 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: const NowPlayingBar(),
       body: uploadsAsync.when(
         data: (state) {
           if (state.tracks.isEmpty) {

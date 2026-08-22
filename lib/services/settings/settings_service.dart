@@ -18,6 +18,9 @@ class SettingsService {
   static const _backupFolderRefKey = 'settings.backupFolderRef';
   static const _backupFolderNameKey = 'settings.backupFolderName';
   static const _autoExportEnabledKey = 'settings.autoExportEnabled';
+  static const _devModeEnabledKey = 'settings.devModeEnabled';
+  static const _dismissedUpdateVersionKey = 'settings.dismissedUpdateVersion';
+  static const _dismissedUpdateAtKey = 'settings.dismissedUpdateAt';
 
   final SharedPreferences _prefs;
 
@@ -105,4 +108,24 @@ class SettingsService {
 
   Future<void> setAutoExportEnabled(bool value) =>
       _prefs.setBool(_autoExportEnabledKey, value);
+
+  bool get devModeEnabled => _prefs.getBool(_devModeEnabledKey) ?? false;
+
+  Future<void> setDevModeEnabled(bool value) =>
+      _prefs.setBool(_devModeEnabledKey, value);
+
+  /// The release version (e.g. "1.0.42") the user last dismissed an
+  /// "update available" prompt for, and when. Used to avoid re-prompting for
+  /// the same version more than once a day.
+  String? get dismissedUpdateVersion => _prefs.getString(_dismissedUpdateVersionKey);
+
+  DateTime? get dismissedUpdateAt {
+    final millis = _prefs.getInt(_dismissedUpdateAtKey);
+    return millis == null ? null : DateTime.fromMillisecondsSinceEpoch(millis);
+  }
+
+  Future<void> setDismissedUpdate(String version, DateTime at) async {
+    await _prefs.setString(_dismissedUpdateVersionKey, version);
+    await _prefs.setInt(_dismissedUpdateAtKey, at.millisecondsSinceEpoch);
+  }
 }

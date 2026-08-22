@@ -1,5 +1,7 @@
 package com.j0nathan550.soundscapes
 
+import android.content.Intent
+import androidx.core.content.FileProvider
 import com.ryanheise.audioservice.AudioServiceActivity
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -9,6 +11,7 @@ import java.io.File
 import kotlin.concurrent.thread
 
 private const val CHANNEL_NAME = "soundscapes/ytdlp"
+private const val UPDATER_CHANNEL_NAME = "soundscapes/updater"
 
 class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -19,6 +22,38 @@ class MainActivity : AudioServiceActivity() {
                 "downloadAudio" -> handleDownloadAudio(call, channel, result)
                 else -> result.notImplemented()
             }
+        }
+
+        val updaterChannel =
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, UPDATER_CHANNEL_NAME)
+        updaterChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "installApk" -> handleInstallApk(call, result)
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun handleInstallApk(
+        call: io.flutter.plugin.common.MethodCall,
+        result: MethodChannel.Result,
+    ) {
+        val filePath = call.argument<String>("filePath")
+        if (filePath.isNullOrBlank()) {
+            result.error("bad_args", "filePath is required", null)
+            return
+        }
+        try {
+            val apkFile = File(filePath)
+            val apkUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", apkFile)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("install_error", e.message, null)
         }
     }
 

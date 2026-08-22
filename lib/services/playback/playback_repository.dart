@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 
+import '../../core/utils/error_format.dart';
+import '../../data/models/playback_error_event.dart';
 import '../../data/models/track.dart';
 import '../download/cache_service.dart';
 import '../library/track_repository.dart';
@@ -15,7 +19,14 @@ class PlaybackRepository {
   final AudioPlayerHandler _handler;
   final CacheService _cacheService;
   final TrackRepository _trackRepository;
-  final void Function(String? trackId)? onPreparingChanged;
+  final void Function(String trackId, bool preparing)? onPreparingChanged;
+
+  /// Bumped by every call that starts a new playback context (a fresh tap,
+  /// not extending the current queue). The background queue-filler in
+  /// [playTracks] checks this before each step and bails out if a newer
+  /// play request has superseded it, so rapidly tapping between tracks
+  /// can't have a stale background fill corrupt the new queue.
+  int _playEpoch = 0;
 
   PlaybackRepository(
     this._handler,
@@ -30,11 +41,11 @@ class PlaybackRepository {
     if (track.isDownloaded && track.localFilePath != null) {
       localPath = track.localFilePath!;
     } else {
-      onPreparingChanged?.call(track.id);
+      onPreparingChanged?.call(track.id, true);
       try {
         localPath = await _cacheService.ensureCached(track);
       } finally {
-        onPreparingChanged?.call(null);
+        onPreparingChanged?.call(track.id, false);
       }
     }
     return MediaItem(
@@ -48,6 +59,7 @@ class PlaybackRepository {
   }
 
   Future<void> playSingleTrack(Track track) async {
+    _playEpoch++;
     try {
       final item = await _toMediaItem(track);
       await _handler.updateQueue([item]);
@@ -58,19 +70,54 @@ class PlaybackRepository {
     }
   }
 
+  /// Plays [tracks] starting at [startIndex]. Only the tapped track is
+  /// resolved up front so playback starts immediately — the rest of the
+  /// list is then resolved one at a time in the background (not all
+  /// concurrently) and quietly appended/prepended into the real queue as
+  /// each one finishes, so skipping forward or back usually finds the next
+  /// track already there without a burst of simultaneous fetches for
+  /// tracks the user hasn't reached yet.
   Future<void> playTracks(List<Track> tracks, {int startIndex = 0}) async {
     if (tracks.isEmpty) return;
+    final epoch = ++_playEpoch;
     try {
-      final items = await Future.wait(tracks.map(_toMediaItem));
-      await _handler.updateQueue(items);
-      await _handler.skipToQueueItem(startIndex);
+      final item = await _toMediaItem(tracks[startIndex]);
+      if (epoch != _playEpoch) return;
+      await _handler.updateQueue([item]);
+      await _handler.skipToQueueItem(0);
       await _handler.play();
     } catch (e) {
-      _handler.reportError(_friendlyError(tracks[startIndex], e));
+      if (epoch == _playEpoch) _handler.reportError(_friendlyError(tracks[startIndex], e));
+      return;
+    }
+    unawaited(_fillQueueInBackground(tracks, startIndex, epoch));
+  }
+
+  Future<void> _fillQueueInBackground(List<Track> tracks, int startIndex, int epoch) async {
+    for (var i = startIndex + 1; i < tracks.length; i++) {
+      if (epoch != _playEpoch) return;
+      try {
+        final item = await _toMediaItem(tracks[i]);
+        if (epoch != _playEpoch) return;
+        await _handler.addQueueItem(item);
+      } catch (_) {
+        // A track that fails to prepare in the background is simply
+        // skipped from the queue; the user only sees an error if they
+        // actually try to play one directly.
+      }
+    }
+    for (var i = startIndex - 1; i >= 0; i--) {
+      if (epoch != _playEpoch) return;
+      try {
+        final item = await _toMediaItem(tracks[i]);
+        if (epoch != _playEpoch) return;
+        await _handler.insertQueueItemAt(0, item);
+      } catch (_) {}
     }
   }
 
   Future<void> restoreLastTrack(Track track, Duration position) async {
+    _playEpoch++;
     try {
       final item = await _toMediaItem(track);
       await _handler.updateQueue([item]);
@@ -85,8 +132,12 @@ class PlaybackRepository {
     await _handler.play();
   }
 
-  String _friendlyError(Track track, Object e) {
-    return 'Couldn\'t play "${track.title}": $e';
+  PlaybackErrorEvent _friendlyError(Track track, Object e) {
+    final formatted = friendlyErrorFrom(e);
+    return PlaybackErrorEvent(
+      friendly: 'Couldn\'t play "${track.title}": ${formatted.friendly}',
+      raw: 'Couldn\'t play "${track.title}": ${formatted.raw}',
+    );
   }
 
   Future<void> toggleShuffle() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../core/theme/theme_presets.dart';
@@ -15,6 +16,8 @@ import 'playback/autoplay_controller.dart';
 import 'playback/playback_persistence_controller.dart';
 import 'playback/playback_repository.dart';
 import 'settings/settings_service.dart';
+import 'update/apk_installer.dart';
+import 'update/update_service.dart';
 import 'youtube/authenticated_youtube_http_client.dart';
 import 'youtube/youtube_search_service.dart';
 
@@ -159,6 +162,31 @@ final resumePlaybackEnabledProvider =
       ResumePlaybackController.new,
     );
 
+/// Shows raw technical error text (yt-dlp/PlatformException dumps) instead of
+/// the short friendly message, for downloads and playback errors. A local
+/// device preference, deliberately not included in the backup/export payload.
+class DevModeController extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).devModeEnabled;
+
+  void setEnabled(bool value) {
+    state = value;
+    ref.read(settingsServiceProvider).setDevModeEnabled(value);
+  }
+}
+
+final devModeEnabledProvider = NotifierProvider<DevModeController, bool>(
+  DevModeController.new,
+);
+
+final updateServiceProvider = Provider<UpdateService>((ref) => UpdateService());
+
+final apkInstallerProvider = Provider<ApkInstaller>((ref) => ApkInstaller());
+
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
+  return PackageInfo.fromPlatform();
+});
+
 final youtubeAuthServiceProvider = Provider<YoutubeAuthService>((ref) {
   return YoutubeAuthService();
 });
@@ -221,23 +249,42 @@ final cacheSizeBytesProvider = StreamProvider<int>((ref) async* {
   }
 });
 
-class PreparingTrackIdController extends Notifier<String?> {
-  @override
-  String? build() => null;
+final downloadedSizeBytesProvider = StreamProvider<int>((ref) {
+  return ref.watch(trackRepositoryProvider).watchTotalDownloadedBytes();
+});
 
-  set value(String? id) => state = id;
+/// Track ids currently being fetched/cached before playback can start. A set
+/// rather than a single id because `playTracks` prepares every track in the
+/// list concurrently (to warm the queue), not just the one that was tapped —
+/// a single nullable value would have each concurrent preparation overwrite
+/// the last, losing track of which rows are actually still loading.
+class PreparingTrackIdsController extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => const {};
+
+  void setPreparing(String trackId, bool preparing) {
+    final next = {...state};
+    if (preparing) {
+      next.add(trackId);
+    } else {
+      next.remove(trackId);
+    }
+    state = next;
+  }
 }
 
-final preparingTrackIdProvider = NotifierProvider<PreparingTrackIdController, String?>(
-  PreparingTrackIdController.new,
-);
+final preparingTrackIdsProvider =
+    NotifierProvider<PreparingTrackIdsController, Set<String>>(
+      PreparingTrackIdsController.new,
+    );
 
 final playbackRepositoryProvider = Provider<PlaybackRepository>((ref) {
   return PlaybackRepository(
     ref.watch(audioHandlerProvider),
     ref.watch(cacheServiceProvider),
     ref.watch(trackRepositoryProvider),
-    onPreparingChanged: (id) => ref.read(preparingTrackIdProvider.notifier).value = id,
+    onPreparingChanged: (id, preparing) =>
+        ref.read(preparingTrackIdsProvider.notifier).setPreparing(id, preparing),
   );
 });
 

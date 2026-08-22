@@ -27,6 +27,10 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: colorScheme,
       snackBarTheme: _snackBarTheme(colorScheme),
+      listTileTheme: ListTileThemeData(
+        selectedTileColor: colorScheme.secondaryContainer,
+        selectedColor: colorScheme.onSecondaryContainer,
+      ),
     );
   }
 
@@ -43,6 +47,10 @@ class AppTheme {
       brightness: Brightness.light,
       colorScheme: colorScheme,
       snackBarTheme: _snackBarTheme(colorScheme),
+      listTileTheme: ListTileThemeData(
+        selectedTileColor: colorScheme.secondaryContainer,
+        selectedColor: colorScheme.onSecondaryContainer,
+      ),
     );
   }
 }

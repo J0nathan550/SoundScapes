@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/widgets/confirm_dialog.dart';
 import '../../data/models/download_task.dart';
 import '../../services/download/download_queue_controller.dart';
 import '../../services/service_providers.dart';
+import '../player/now_playing_bar.dart';
 import 'providers/library_providers.dart';
 import 'widgets/track_list_tile.dart';
 
@@ -17,6 +19,7 @@ class DownloadedScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Downloaded')),
+      bottomNavigationBar: const NowPlayingBar(),
       body: ListView(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).padding.bottom + 16,
@@ -51,9 +54,18 @@ class DownloadedScreen extends ConsumerWidget {
                           .playTracks(tracks, startIndex: i),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete_outline),
-                        onPressed: () => ref
-                            .read(trackRepositoryProvider)
-                            .deleteDownload(tracks[i].id),
+                        onPressed: () async {
+                          final confirmed = await showConfirmDialog(
+                            context,
+                            title: 'Delete download?',
+                            message:
+                                'Delete "${tracks[i].title}" from your downloads? '
+                                'You can re-download it later.',
+                            confirmLabel: 'Delete',
+                          );
+                          if (!confirmed) return;
+                          ref.read(trackRepositoryProvider).deleteDownload(tracks[i].id);
+                        },
                       ),
                     ),
                 ],
@@ -82,6 +94,8 @@ class _ActiveDownloadTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isFailed = task.status == DownloadStatus.failed;
+    final devMode = ref.watch(devModeEnabledProvider);
+    final errorText = devMode ? task.rawErrorMessage : task.errorMessage;
     return ListTile(
       leading: Icon(
         isFailed ? Icons.error_outline : Icons.downloading,
@@ -89,7 +103,7 @@ class _ActiveDownloadTile extends ConsumerWidget {
       ),
       title: Text(task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: isFailed
-          ? Text(task.errorMessage ?? 'Download failed')
+          ? Text(errorText ?? 'Download failed')
           : LinearProgressIndicator(
               value: task.progressPercent == null ? null : task.progressPercent! / 100,
             ),

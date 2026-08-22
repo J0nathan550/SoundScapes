@@ -245,4 +245,18 @@ final class AppDatabase extends _$AppDatabase {
     if (row == null) return null;
     return _trackFromRows(row.readTable(tracks), row.readTable(downloadedTracks));
   }
+
+  Stream<int> watchTotalDownloadedBytes() {
+    final totalBytes = downloadedTracks.fileSizeBytes.sum();
+    final query = selectOnly(downloadedTracks)..addColumns([totalBytes]);
+    return query.map((row) => row.read(totalBytes) ?? 0).watchSingle();
+  }
+
+  Future<List<String>> getAllDownloadedFilePaths() {
+    return select(downloadedTracks).map((row) => row.filePath).get();
+  }
+
+  Future<void> deleteAllDownloadedTracks() {
+    return delete(downloadedTracks).go();
+  }
 }

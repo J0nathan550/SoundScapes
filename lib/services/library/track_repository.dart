@@ -42,4 +42,19 @@ class TrackRepository {
       await file.delete();
     }
   }
+
+  Stream<int> watchTotalDownloadedBytes() => _db.watchTotalDownloadedBytes();
+
+  Future<void> deleteAllDownloads() async {
+    final paths = await _db.getAllDownloadedFilePaths();
+    await _db.deleteAllDownloadedTracks();
+    for (final path in paths) {
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        // Best-effort: one locked/missing file shouldn't block the rest.
+      }
+    }
+  }
 }

@@ -6,6 +6,7 @@ class DownloadTask {
   final DownloadStatus status;
   final double? progressPercent;
   final String? errorMessage;
+  final String? rawErrorMessage;
 
   const DownloadTask({
     required this.trackId,
@@ -13,12 +14,14 @@ class DownloadTask {
     required this.status,
     this.progressPercent,
     this.errorMessage,
+    this.rawErrorMessage,
   });
 
   DownloadTask copyWith({
     DownloadStatus? status,
     double? progressPercent,
     String? errorMessage,
+    String? rawErrorMessage,
   }) {
     return DownloadTask(
       trackId: trackId,
@@ -26,6 +29,7 @@ class DownloadTask {
       status: status ?? this.status,
       progressPercent: progressPercent ?? this.progressPercent,
       errorMessage: errorMessage ?? this.errorMessage,
+      rawErrorMessage: rawErrorMessage ?? this.rawErrorMessage,
     );
   }
 }

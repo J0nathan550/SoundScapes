@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/byte_format.dart';
 import '../../core/utils/duration_format.dart';
 import '../../core/widgets/app_snackbar.dart';
+import '../../core/widgets/confirm_dialog.dart';
 import '../../services/playback/sleep_timer_controller.dart';
 import '../../services/service_providers.dart';
+import '../library/providers/library_providers.dart';
 import '../player/widgets/sleep_timer_sheet.dart';
 import 'widgets/theme_color_picker.dart';
+import 'widgets/update_dialogs.dart';
 import 'widgets/youtube_login_webview.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -116,28 +119,69 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 onTap: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Clear cache?'),
-                      content: const Text(
+                  final confirmed = await showConfirmDialog(
+                    context,
+                    title: 'Clear cache?',
+                    message:
                         'Frees up space used by tracks you played but never explicitly '
                         'downloaded. Anything in your Downloaded library is unaffected.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('Clear'),
-                        ),
-                      ],
-                    ),
+                    confirmLabel: 'Clear',
                   );
-                  if (confirmed == true) {
+                  if (confirmed) {
                     await ref.read(cacheServiceProvider).clearCache();
+                  }
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final sizeAsync = ref.watch(downloadedSizeBytesProvider);
+              final count = ref.watch(downloadedTracksProvider).value?.length;
+              return ListTile(
+                leading: const Icon(Icons.download_done),
+                title: const Text('Clear downloaded'),
+                subtitle: Text(
+                  sizeAsync.when(
+                    data: (bytes) =>
+                        '${count ?? 0} downloaded tracks use ${formatBytes(bytes)}',
+                    loading: () => 'Calculating…',
+                    error: (_, _) => 'Unable to read downloads size',
+                  ),
+                ),
+                onTap: () async {
+                  final confirmed = await showConfirmDialog(
+                    context,
+                    title: 'Clear downloaded?',
+                    message:
+                        'Deletes every downloaded audio file. Streamed playback and '
+                        'your folders are unaffected — tracks just stop being available '
+                        'offline until re-downloaded.',
+                    confirmLabel: 'Clear',
+                  );
+                  if (confirmed) {
+                    await ref.read(trackRepositoryProvider).deleteAllDownloads();
+                  }
+                },
+              );
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              return ListTile(
+                leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                title: const Text('Clear all'),
+                subtitle: const Text('Clears both cache and downloaded tracks'),
+                onTap: () async {
+                  final confirmed = await showConfirmDialog(
+                    context,
+                    title: 'Clear all?',
+                    message: 'Deletes every cached and downloaded audio file.',
+                    confirmLabel: 'Clear all',
+                  );
+                  if (confirmed) {
+                    await ref.read(cacheServiceProvider).clearCache();
+                    await ref.read(trackRepositoryProvider).deleteAllDownloads();
                   }
                 },
               );
@@ -277,6 +321,37 @@ class SettingsScreen extends ConsumerWidget {
                 MaterialPageRoute(builder: (_) => const YoutubeLoginWebView()),
               ),
             ),
+          ),
+          const _SectionHeader('Advanced'),
+          SwitchListTile(
+            title: const Text('Developer mode'),
+            subtitle: const Text(
+              'Show raw technical error details for downloads and playback',
+            ),
+            value: ref.watch(devModeEnabledProvider),
+            onChanged: (value) =>
+                ref.read(devModeEnabledProvider.notifier).setEnabled(value),
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final packageInfoAsync = ref.watch(packageInfoProvider);
+              return ListTile(
+                leading: const Icon(Icons.system_update),
+                title: const Text('Check for updates'),
+                subtitle: Text(
+                  packageInfoAsync.when(
+                    data: (info) => 'Current version ${info.version}',
+                    loading: () => 'Loading version…',
+                    error: (_, _) => 'Current version unknown',
+                  ),
+                ),
+                onTap: () async {
+                  final version = await ref.read(packageInfoProvider.future);
+                  if (!context.mounted) return;
+                  await showCheckForUpdatesFlow(context, ref, version.version);
+                },
+              );
+            },
           ),
         ],
       ),

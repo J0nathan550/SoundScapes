@@ -7,7 +7,9 @@ import 'features/player/now_playing_bar.dart';
 import 'features/player/providers/player_providers.dart';
 import 'features/search/search_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/settings/widgets/update_dialogs.dart';
 import 'services/service_providers.dart';
+import 'services/update/update_controller.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -36,15 +38,26 @@ class _AppShellState extends ConsumerState<AppShell> {
         ref.read(playbackRepositoryProvider),
         ref.read(trackRepositoryProvider),
       );
+      _checkForUpdate();
     });
+  }
+
+  Future<void> _checkForUpdate() async {
+    final packageInfo = await ref.read(packageInfoProvider.future);
+    final info = await ref
+        .read(updateControllerProvider)
+        .checkOnLaunchIfDue(packageInfo.version);
+    if (info == null || !mounted) return;
+    await showUpdateAvailableDialog(context, ref, info);
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen(playbackErrorsProvider, (previous, next) {
-      final message = next.value;
-      if (message == null) return;
-      showAppSnackBar(ScaffoldMessenger.of(context), message);
+      final event = next.value;
+      if (event == null) return;
+      final devMode = ref.read(devModeEnabledProvider);
+      showAppSnackBar(ScaffoldMessenger.of(context), devMode ? event.raw : event.friendly);
     });
 
     return Scaffold(

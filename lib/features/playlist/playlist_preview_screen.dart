@@ -5,6 +5,7 @@ import '../../core/widgets/app_snackbar.dart';
 import '../../data/models/track.dart';
 import '../../services/service_providers.dart';
 import '../library/widgets/track_list_tile.dart';
+import '../player/now_playing_bar.dart';
 import '../search/widgets/track_actions_row.dart';
 import 'providers/playlist_providers.dart';
 
@@ -30,6 +31,7 @@ class PlaylistPreviewScreen extends ConsumerWidget {
             _SaveAsFolderButton(title: fallbackTitle, tracks: tracks),
         ],
       ),
+      bottomNavigationBar: const NowPlayingBar(),
       body: tracksAsync.when(
         data: (tracks) {
           if (tracks.isEmpty) {

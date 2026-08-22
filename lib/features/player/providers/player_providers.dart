@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/models/playback_error_event.dart';
 import '../../../services/service_providers.dart';
 
 export '../../../services/service_providers.dart' show playbackRepositoryProvider;
@@ -13,11 +14,25 @@ final currentMediaItemProvider = StreamProvider<MediaItem?>((ref) {
   return ref.watch(audioHandlerProvider).mediaItem;
 });
 
+/// The track id of whatever is currently loaded in the player (playing or
+/// paused), so list tiles can highlight the matching row. Null when nothing
+/// is loaded.
+final currentTrackIdProvider = Provider<String?>((ref) {
+  final mediaItem = ref.watch(currentMediaItemProvider).value;
+  return mediaItem?.extras?['trackId'] as String?;
+});
+
+/// Whether the player is actively playing (not just loaded/paused) — used to
+/// decide whether the now-playing indicator in list tiles should animate.
+final isPlayingProvider = Provider<bool>((ref) {
+  return ref.watch(playbackStateProvider).value?.playing ?? false;
+});
+
 final currentQueueProvider = StreamProvider<List<MediaItem>>((ref) {
   return ref.watch(audioHandlerProvider).queue;
 });
 
-final playbackErrorsProvider = StreamProvider<String>((ref) {
+final playbackErrorsProvider = StreamProvider<PlaybackErrorEvent>((ref) {
   return ref.watch(audioHandlerProvider).playbackErrors;
 });
 
