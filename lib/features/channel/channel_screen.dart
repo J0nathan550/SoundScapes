@@ -78,7 +78,7 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
       body: uploadsAsync.when(
         data: (state) {
           if (state.tracks.isEmpty) {

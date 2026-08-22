@@ -49,7 +49,7 @@ class FolderDetailScreen extends ConsumerWidget {
             ),
         ],
       ),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
       body: tracksAsync.when(
         data: (tracks) {
           if (tracks.isEmpty) {

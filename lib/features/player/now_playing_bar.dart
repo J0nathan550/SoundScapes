@@ -7,7 +7,14 @@ import 'now_playing_screen.dart';
 import 'providers/player_providers.dart';
 
 class NowPlayingBar extends ConsumerWidget {
-  const NowPlayingBar({super.key});
+  /// Whether to pad for the Android system nav bar ourselves. Screens that
+  /// stack this above a [NavigationBar] (which already pads itself for that
+  /// inset) should leave this false; screens using this bar as their only
+  /// bottomNavigationBar content need it true so the bar isn't drawn under
+  /// the system nav bar.
+  final bool applyBottomSafeArea;
+
+  const NowPlayingBar({super.key, this.applyBottomSafeArea = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,7 +29,7 @@ class NowPlayingBar extends ConsumerWidget {
               .clamp(0.0, 1.0)
         : 0.0;
 
-    return Material(
+    final bar = Material(
       elevation: 8,
       child: InkWell(
         onTap: () => Navigator.of(context).push(
@@ -104,5 +111,7 @@ class NowPlayingBar extends ConsumerWidget {
         ),
       ),
     );
+
+    return applyBottomSafeArea ? SafeArea(top: false, child: bar) : bar;
   }
 }

@@ -19,7 +19,7 @@ class DownloadedScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Downloaded')),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
       body: ListView(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).padding.bottom + 16,

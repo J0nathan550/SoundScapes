@@ -31,7 +31,7 @@ class PlaylistPreviewScreen extends ConsumerWidget {
             _SaveAsFolderButton(title: fallbackTitle, tracks: tracks),
         ],
       ),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
       body: tracksAsync.when(
         data: (tracks) {
           if (tracks.isEmpty) {
