@@ -7,15 +7,12 @@ import 'package:flutter/material.dart';
 ///
 /// Takes a [ScaffoldMessengerState] (via `ScaffoldMessenger.of(context)`)
 /// rather than a [BuildContext] so callers can capture it before an async
-/// gap and safely call this after awaiting something. [bottomChromeHeight]
-/// should come from `ref.read(bottomChromeHeightProvider)` — the live
-/// measured height of the mini player + bottom nav bar — so the snackbar
-/// sits right above them regardless of screen/window size.
-void showAppSnackBar(
-  ScaffoldMessengerState messenger,
-  String message, {
-  double bottomChromeHeight = 0,
-}) {
+/// gap and safely call this after awaiting something. Floating SnackBars
+/// only ever render on the root [Scaffold] (see [ScaffoldMessengerState]'s
+/// nested-scaffold handling), and that root Scaffold's `bottomNavigationBar`
+/// holds the mini player + nav bar, so Scaffold's own floating-SnackBar
+/// avoidance already keeps this clear of them — no manual offset needed.
+void showAppSnackBar(ScaffoldMessengerState messenger, String message) {
   messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
@@ -23,7 +20,7 @@ void showAppSnackBar(
         content: Text(message),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.fromLTRB(16, 0, 16, bottomChromeHeight + 12),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),

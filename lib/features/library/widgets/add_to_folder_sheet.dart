@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/ui_metrics_provider.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/track.dart';
 import '../../../services/service_providers.dart';
@@ -88,16 +87,11 @@ class _AddToFolderSheet extends ConsumerWidget {
                       onTap: () async {
                         final navigator = Navigator.of(context);
                         final messenger = ScaffoldMessenger.of(context);
-                        final chromeHeight = ref.read(bottomChromeHeightProvider);
                         await ref
                             .read(folderRepositoryProvider)
                             .addTrackToFolder(folder.id, track);
                         navigator.pop();
-                        showAppSnackBar(
-                          messenger,
-                          'Added to ${folder.name}',
-                          bottomChromeHeight: chromeHeight,
-                        );
+                        showAppSnackBar(messenger, 'Added to ${folder.name}');
                       },
                     );
                   },

@@ -24,8 +24,11 @@ dependencies:
   cached_network_image: ^3.4.1
   permission_handler: ^13.0.1
   shared_preferences: ^2.3.0
-  flutter_secure_storage: ^9.2.2
+  flutter_secure_storage: ^11.0.0
   webview_flutter: ^4.10.0
+  file_picker: ^12.0.0
+  saf_util: ^3.1.0
+  saf_stream: ^4.0.1
 
 dev_dependencies:
   flutter_test:

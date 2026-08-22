@@ -5,6 +5,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../core/theme/theme_presets.dart';
 import '../data/db/app_database.dart';
 import 'auth/youtube_auth_service.dart';
+import 'backup/backup_service.dart';
 import 'download/cache_service.dart';
 import 'download/ytdlp_service.dart';
 import 'library/folder_repository.dart';
@@ -31,6 +32,52 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+final backupServiceProvider = Provider<BackupService>((ref) {
+  final service = BackupService(
+    ref.watch(settingsServiceProvider),
+    ref.watch(appDatabaseProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+class BackupFolderController extends Notifier<String?> {
+  @override
+  String? build() => ref.watch(settingsServiceProvider).backupFolderDisplayName;
+
+  Future<bool> pick() async {
+    final picked = await ref.read(backupServiceProvider).pickFolder();
+    if (picked) {
+      state = ref.read(settingsServiceProvider).backupFolderDisplayName;
+    }
+    return picked;
+  }
+
+  Future<void> clear() async {
+    await ref.read(backupServiceProvider).clearFolder();
+    state = null;
+  }
+}
+
+final backupFolderProvider = NotifierProvider<BackupFolderController, String?>(
+  BackupFolderController.new,
+);
+
+class AutoExportController extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).autoExportEnabled;
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    await ref.read(backupServiceProvider).setAutoExportEnabled(value);
+    if (value) ref.read(backupServiceProvider).scheduleAutoExport();
+  }
+}
+
+final autoExportEnabledProvider = NotifierProvider<AutoExportController, bool>(
+  AutoExportController.new,
+);
+
 class ThemeModeController extends Notifier<ThemeMode> {
   @override
   ThemeMode build() => ref.watch(settingsServiceProvider).themeMode;
@@ -38,6 +85,7 @@ class ThemeModeController extends Notifier<ThemeMode> {
   void setThemeMode(ThemeMode mode) {
     state = mode;
     ref.read(settingsServiceProvider).setThemeMode(mode);
+    ref.read(backupServiceProvider).scheduleAutoExport();
   }
 }
 
@@ -52,6 +100,7 @@ class ThemePresetController extends Notifier<AppThemePreset> {
   void setPreset(AppThemePreset preset) {
     state = preset;
     ref.read(settingsServiceProvider).setThemePreset(preset);
+    ref.read(backupServiceProvider).scheduleAutoExport();
   }
 }
 
@@ -66,6 +115,7 @@ class CustomThemeColorController extends Notifier<Color> {
   void setColor(Color color) {
     state = color;
     ref.read(settingsServiceProvider).setCustomThemeColor(color);
+    ref.read(backupServiceProvider).scheduleAutoExport();
   }
 }
 
@@ -85,6 +135,7 @@ class AutoplaySettingController extends Notifier<bool> {
   void setEnabled(bool value) {
     state = value;
     ref.read(settingsServiceProvider).setAutoplayEnabled(value);
+    ref.read(backupServiceProvider).scheduleAutoExport();
   }
 }
 
@@ -99,6 +150,7 @@ class ResumePlaybackController extends Notifier<bool> {
   void setEnabled(bool value) {
     state = value;
     ref.read(settingsServiceProvider).setResumePlaybackEnabled(value);
+    ref.read(backupServiceProvider).scheduleAutoExport();
   }
 }
 

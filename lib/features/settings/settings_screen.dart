@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/byte_format.dart';
 import '../../core/utils/duration_format.dart';
+import '../../core/widgets/app_snackbar.dart';
 import '../../services/playback/sleep_timer_controller.dart';
 import '../../services/service_providers.dart';
 import '../player/widgets/sleep_timer_sheet.dart';
@@ -139,6 +140,100 @@ class SettingsScreen extends ConsumerWidget {
                     await ref.read(cacheServiceProvider).clearCache();
                   }
                 },
+              );
+            },
+          ),
+          const _SectionHeader('Backup & Restore'),
+          Consumer(
+            builder: (context, ref, _) {
+              final folderName = ref.watch(backupFolderProvider);
+              final autoExport = ref.watch(autoExportEnabledProvider);
+              final configured = folderName != null;
+              return Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.folder_open),
+                    title: const Text('Backup folder'),
+                    subtitle: Text(
+                      configured
+                          ? folderName
+                          : 'Not set — choose a folder to enable backup',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final picked = await ref.read(backupFolderProvider.notifier).pick();
+                      if (!picked) return;
+                      final newName = ref.read(backupFolderProvider);
+                      showAppSnackBar(messenger, 'Backup folder set to $newName');
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('Auto-export on change'),
+                    subtitle: const Text(
+                      'Keep the backup folder in sync with your library and settings',
+                    ),
+                    value: autoExport,
+                    onChanged: configured
+                        ? (value) =>
+                              ref.read(autoExportEnabledProvider.notifier).setEnabled(value)
+                        : null,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.upload_outlined),
+                    title: const Text('Export now'),
+                    enabled: configured,
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        await ref.read(backupServiceProvider).exportNow();
+                        showAppSnackBar(messenger, 'Exported to $folderName');
+                      } catch (e) {
+                        showAppSnackBar(messenger, 'Export failed: $e');
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download_outlined),
+                    title: const Text('Import from folder'),
+                    enabled: configured,
+                    onTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Import backup?'),
+                          content: const Text(
+                            'This adds folders and tracks from the backup into your '
+                            'library and restores app settings. Existing folders with '
+                            'matching names are merged, not replaced.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Import'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed != true || !context.mounted) return;
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        final summary = await ref.read(backupServiceProvider).importNow();
+                        showAppSnackBar(
+                          messenger,
+                          'Imported ${summary.folderCount} folders, '
+                          '${summary.trackCount} tracks',
+                        );
+                      } catch (e) {
+                        showAppSnackBar(messenger, 'Import failed: $e');
+                      }
+                    },
+                  ),
+                ],
               );
             },
           ),

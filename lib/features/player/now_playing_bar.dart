@@ -2,11 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../services/playback/sleep_timer_controller.dart';
 import '../../services/service_providers.dart';
 import 'now_playing_screen.dart';
 import 'providers/player_providers.dart';
-import 'widgets/sleep_timer_sheet.dart';
 
 class NowPlayingBar extends ConsumerWidget {
   const NowPlayingBar({super.key});
@@ -80,7 +78,6 @@ class NowPlayingBar extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const _SleepTimerButton(),
                   IconButton(
                     icon: const Icon(Icons.skip_previous),
                     onPressed: handler.skipToPrevious,
@@ -106,21 +103,6 @@ class NowPlayingBar extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SleepTimerButton extends ConsumerWidget {
-  const _SleepTimerButton();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final active = ref.watch(sleepTimerControllerProvider).isActive;
-    return IconButton(
-      icon: Icon(active ? Icons.bedtime : Icons.bedtime_outlined),
-      color: active ? Theme.of(context).colorScheme.primary : null,
-      tooltip: 'Sleep timer',
-      onPressed: () => showSleepTimerSheet(context),
     );
   }
 }

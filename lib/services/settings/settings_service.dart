@@ -15,6 +15,9 @@ class SettingsService {
   static const _playbackSnapshotKey = 'settings.playbackSnapshot';
   static const _lastSearchQueryKey = 'settings.lastSearchQuery';
   static const _lastSearchTabIndexKey = 'settings.lastSearchTabIndex';
+  static const _backupFolderRefKey = 'settings.backupFolderRef';
+  static const _backupFolderNameKey = 'settings.backupFolderName';
+  static const _autoExportEnabledKey = 'settings.autoExportEnabled';
 
   final SharedPreferences _prefs;
 
@@ -34,7 +37,7 @@ class SettingsService {
     final value = _prefs.getString(_themePresetKey);
     return AppThemePreset.values.firstWhere(
       (p) => p.name == value,
-      orElse: () => AppThemePreset.violet,
+      orElse: () => AppThemePreset.monochrome,
     );
   }
 
@@ -80,4 +83,26 @@ class SettingsService {
 
   Future<void> setLastSearchTabIndex(int index) =>
       _prefs.setInt(_lastSearchTabIndexKey, index);
+
+  /// On Android this is a persisted SAF tree URI; on desktop it's a plain
+  /// filesystem path. Either way it's opaque to callers outside
+  /// [BackupService].
+  String? get backupFolderRef => _prefs.getString(_backupFolderRefKey);
+
+  String? get backupFolderDisplayName => _prefs.getString(_backupFolderNameKey);
+
+  Future<void> setBackupFolder(String? ref, String? displayName) async {
+    if (ref == null) {
+      await _prefs.remove(_backupFolderRefKey);
+      await _prefs.remove(_backupFolderNameKey);
+      return;
+    }
+    await _prefs.setString(_backupFolderRefKey, ref);
+    await _prefs.setString(_backupFolderNameKey, displayName ?? ref);
+  }
+
+  bool get autoExportEnabled => _prefs.getBool(_autoExportEnabledKey) ?? false;
+
+  Future<void> setAutoExportEnabled(bool value) =>
+      _prefs.setBool(_autoExportEnabledKey, value);
 }
