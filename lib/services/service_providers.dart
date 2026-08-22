@@ -8,6 +8,7 @@ import '../data/db/app_database.dart';
 import 'auth/youtube_auth_service.dart';
 import 'backup/backup_service.dart';
 import 'download/cache_service.dart';
+import 'download/download_notification_service.dart';
 import 'download/ytdlp_service.dart';
 import 'library/folder_repository.dart';
 import 'library/track_repository.dart';
@@ -236,6 +237,10 @@ final trackRepositoryProvider = Provider<TrackRepository>((ref) {
 });
 
 final ytDlpServiceProvider = Provider<YtDlpService>((ref) => YtDlpService());
+
+final downloadNotificationServiceProvider = Provider<DownloadNotificationService>(
+  (ref) => DownloadNotificationService(),
+);
 
 final cacheServiceProvider = Provider<CacheService>((ref) {
   return CacheService(ref.watch(ytDlpServiceProvider), ref.watch(trackRepositoryProvider));

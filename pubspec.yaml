@@ -30,6 +30,7 @@ dependencies:
   saf_util: ^3.1.0
   saf_stream: ^4.0.1
   package_info_plus: ^10.2.1
+  flutter_local_notifications: ^22.3.0
 
 dev_dependencies:
   flutter_test:

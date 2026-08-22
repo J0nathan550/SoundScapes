@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/widgets/confirm_dialog.dart';
+import '../../data/models/download_batch_summary.dart';
 import '../../data/models/download_task.dart';
 import '../../services/download/download_queue_controller.dart';
 import '../../services/service_providers.dart';
@@ -16,6 +17,7 @@ class DownloadedScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final downloadedAsync = ref.watch(downloadedTracksProvider);
     final activeDownloads = ref.watch(activeDownloadsProvider);
+    final batchSummary = ref.watch(downloadBatchSummaryProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Downloaded')),
@@ -25,6 +27,7 @@ class DownloadedScreen extends ConsumerWidget {
           bottom: MediaQuery.of(context).padding.bottom + 16,
         ),
         children: [
+          if (!batchSummary.isEmpty) _BatchSummaryHeader(summary: batchSummary),
           if (activeDownloads.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -78,6 +81,42 @@ class DownloadedScreen extends ConsumerWidget {
             error: (e, _) => Padding(
               padding: const EdgeInsets.all(24),
               child: Text('Failed to load downloads: $e'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BatchSummaryHeader extends StatelessWidget {
+  final DownloadBatchSummary summary;
+
+  const _BatchSummaryHeader({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final segments = [
+      if (summary.completed > 0) '${summary.completed} downloaded',
+      if (summary.failed > 0) '${summary.failed} failed',
+      if (summary.remaining > 0) '${summary.remaining} remaining',
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            summary.isActive ? 'Downloading…' : 'Downloads finished',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 2),
+          Text(segments.join(' · '), style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (summary.completed + summary.failed) / summary.total,
             ),
           ),
         ],

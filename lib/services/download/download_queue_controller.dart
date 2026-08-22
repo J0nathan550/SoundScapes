@@ -4,17 +4,36 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../core/constants.dart';
 import '../../core/utils/error_format.dart';
+import '../../data/models/download_batch_summary.dart';
 import '../../data/models/download_task.dart';
 import '../../data/models/track.dart';
 import '../service_providers.dart';
 
 class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
+  /// Track ids downloaded together, for the aggregate progress notification
+  /// and Downloads-tab summary. Reset to just the newly-requested id(s) once
+  /// nothing from the previous batch is still queued/downloading, so a fresh
+  /// "download this one song" click doesn't keep inflating a long-finished
+  /// batch's counts; otherwise extended, so a multi-track "download all" (or
+  /// several individual downloads kicked off in quick succession) reads as
+  /// one batch.
+  Set<String> _batchTrackIds = {};
+  Set<String> get batchTrackIds => _batchTrackIds;
+
+  void _extendBatch(Iterable<String> trackIds) {
+    final anyActive = state.values.any(
+      (t) => t.status == DownloadStatus.downloading || t.status == DownloadStatus.queued,
+    );
+    _batchTrackIds = anyActive ? {..._batchTrackIds, ...trackIds} : trackIds.toSet();
+  }
+
   @override
   Map<String, DownloadTask> build() => {};
 
-  Future<void> download(Track track) async {
+  Future<void> download(Track track, {bool joinBatch = true}) async {
     if (state[track.id]?.status == DownloadStatus.downloading) return;
     if (track.isDownloaded) return;
+    if (joinBatch) _extendBatch([track.id]);
 
     state = {
       ...state,
@@ -89,9 +108,11 @@ class DownloadQueueController extends Notifier<Map<String, DownloadTask>> {
   }
 
   Future<void> downloadAll(List<Track> tracks) async {
-    for (final track in tracks) {
-      if (track.isDownloaded) continue;
-      await download(track);
+    final pending = tracks.where((t) => !t.isDownloaded).toList();
+    if (pending.isEmpty) return;
+    _extendBatch(pending.map((t) => t.id));
+    for (final track in pending) {
+      await download(track, joinBatch: false);
     }
   }
 
@@ -105,3 +126,13 @@ final downloadQueueControllerProvider =
     NotifierProvider<DownloadQueueController, Map<String, DownloadTask>>(
   DownloadQueueController.new,
 );
+
+/// Aggregate progress for the current download batch — see
+/// [DownloadQueueController.batchTrackIds]. Drives the download notification
+/// (via a listener in the app shell), the Downloads tab summary, and the nav
+/// bar badge.
+final downloadBatchSummaryProvider = Provider<DownloadBatchSummary>((ref) {
+  final tasks = ref.watch(downloadQueueControllerProvider);
+  final batchIds = ref.watch(downloadQueueControllerProvider.notifier).batchTrackIds;
+  return DownloadBatchSummary.of(tasks, batchIds);
+});

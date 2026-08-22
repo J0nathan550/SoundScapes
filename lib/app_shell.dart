@@ -8,6 +8,7 @@ import 'features/player/providers/player_providers.dart';
 import 'features/search/search_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/settings/widgets/update_dialogs.dart';
+import 'services/download/download_queue_controller.dart';
 import 'services/service_providers.dart';
 import 'services/update/update_controller.dart';
 
@@ -59,6 +60,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       final devMode = ref.read(devModeEnabledProvider);
       showAppSnackBar(ScaffoldMessenger.of(context), devMode ? event.raw : event.friendly);
     });
+    ref.listen(downloadBatchSummaryProvider, (previous, next) {
+      ref.read(downloadNotificationServiceProvider).showOrUpdate(next);
+    });
+    final downloadsRemaining = ref.watch(downloadBatchSummaryProvider).remaining;
 
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
@@ -73,13 +78,17 @@ class _AppShellState extends ConsumerState<AppShell> {
           NavigationBar(
             selectedIndex: _index,
             onDestinationSelected: (index) => setState(() => _index = index),
-            destinations: const [
-              NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
+            destinations: [
+              const NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
               NavigationDestination(
-                icon: Icon(Icons.library_music),
+                icon: Badge(
+                  isLabelVisible: downloadsRemaining > 0,
+                  label: Text('$downloadsRemaining'),
+                  child: const Icon(Icons.library_music),
+                ),
                 label: 'Library',
               ),
-              NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+              const NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
             ],
           ),
         ],

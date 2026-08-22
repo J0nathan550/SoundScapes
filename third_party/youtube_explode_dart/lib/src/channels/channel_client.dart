@@ -1,9 +1,11 @@
 import '../common/common.dart';
+import '../exceptions/exceptions.dart';
 import '../extensions/helpers_extension.dart';
 import '../playlists/playlists.dart';
 import '../reverse_engineering/pages/channel_about_page.dart';
 import '../reverse_engineering/pages/channel_page.dart';
 import '../reverse_engineering/pages/channel_upload_page.dart';
+import '../reverse_engineering/pages/playlist_page.dart';
 import '../reverse_engineering/pages/watch_page.dart';
 import '../reverse_engineering/youtube_http_client.dart';
 import '../videos/video.dart';
@@ -145,39 +147,59 @@ class ChannelClient {
     VideoType videoType = VideoType.normal,
   }) async {
     channelId = ChannelId.fromString(channelId);
-    final page = await ChannelUploadPage.get(
-      _httpClient,
-      (channelId as ChannelId).value,
-      videoSorting.code,
-      videoType,
-    );
-
     final channel = await get(channelId);
 
-    return ChannelUploadsList(
-      page.uploads
-          .map(
-            (e) => Video(
-              e.videoId,
-              e.videoTitle,
-              channel.title,
-              channelId,
-              e.videoUploadDate.toDateTime(),
-              e.videoUploadDate,
-              null,
-              '',
-              e.videoDuration,
-              ThumbnailSet(e.videoId.value),
-              null,
-              Engagement(e.videoViews, null, null),
-              false,
-            ),
-          )
-          .toList(),
-      channel.title,
-      channelId,
-      page,
-      _httpClient,
-    );
+    try {
+      final page = await ChannelUploadPage.get(
+        _httpClient,
+        (channelId as ChannelId).value,
+        videoSorting.code,
+        videoType,
+      );
+
+      return ChannelUploadsList(
+        page.uploads
+            .map(
+              (e) => Video(
+                e.videoId,
+                e.videoTitle,
+                channel.title,
+                channelId,
+                e.videoUploadDate.toDateTime(),
+                e.videoUploadDate,
+                null,
+                '',
+                e.videoDuration,
+                ThumbnailSet(e.videoId.value),
+                null,
+                Engagement(e.videoViews, null, null),
+                false,
+              ),
+            )
+            .toList(),
+        channel.title,
+        channelId,
+        page,
+        _httpClient,
+      );
+    } on FatalFailureException {
+      // Auto-generated "Topic" channels (e.g. music delivered through a
+      // distributor like DistroKid) have no Videos tab: YouTube serves
+      // their Home tab instead, whose "Albums & Singles" shelf this library
+      // can't parse as a video grid. Every channel has an implicit
+      // "uploads" playlist though (`UU` + the channel ID suffix), which
+      // works for Topic channels too since it doesn't depend on a Videos
+      // tab existing — fall back to that.
+      if (videoType != VideoType.normal) rethrow;
+      final uploadsPlaylistId =
+          'UU${(channelId as ChannelId).value.substringAfter('UC')}';
+      final playlistPage = await PlaylistPage.get(_httpClient, uploadsPlaylistId);
+      return ChannelUploadsList.fromPlaylistPage(
+        playlistPage,
+        channel.title,
+        channelId,
+        _httpClient,
+      );
+    }
   }
 }

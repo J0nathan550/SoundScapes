@@ -17,12 +17,12 @@ class FolderDetailScreen extends ConsumerWidget {
 
   const FolderDetailScreen({super.key, required this.folder});
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String currentName) async {
     final navigator = Navigator.of(context);
     final confirmed = await showConfirmDialog(
       context,
       title: 'Delete folder?',
-      message: 'This removes "${folder.name}" but keeps any downloaded tracks.',
+      message: 'This removes "$currentName" but keeps any downloaded tracks.',
       confirmLabel: 'Delete',
     );
     if (confirmed) {
@@ -31,22 +31,76 @@ class FolderDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<String?> _promptRename(BuildContext context, String currentName) {
+    final controller = TextEditingController(text: currentName);
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename folder'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Folder name'),
+          onSubmitted: (value) => Navigator.of(ctx).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('Rename'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _renameFolder(BuildContext context, WidgetRef ref, String currentName) async {
+    final name = await _promptRename(context, currentName);
+    if (name == null) return;
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || trimmed == currentName) return;
+    await ref.read(folderRepositoryProvider).renameFolder(folder.id, trimmed);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tracksAsync = ref.watch(folderTracksProvider(folder.id));
+    // `folder` is a snapshot passed in by the caller, so re-derive the live
+    // name from the folders stream (falling back to that snapshot for the
+    // system "Liked Songs" folder, which watchFolders() excludes) — otherwise
+    // the app bar title wouldn't reflect a rename made from this same screen.
+    final folders = ref.watch(foldersProvider).value;
+    var currentName = folder.name;
+    if (folders != null) {
+      for (final f in folders) {
+        if (f.id == folder.id) {
+          currentName = f.name;
+          break;
+        }
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(folder.name),
+        title: Text(currentName),
         actions: [
           if (tracksAsync.value case final tracks? when tracks.isNotEmpty)
             _DownloadAllButton(tracks: tracks),
-          if (!folder.isSystem)
+          if (!folder.isSystem) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Rename folder',
+              onPressed: () => _renameFolder(context, ref, currentName),
+            ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete folder',
-              onPressed: () => _confirmDelete(context, ref),
+              onPressed: () => _confirmDelete(context, ref, currentName),
             ),
+          ],
         ],
       ),
       bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
