@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/byte_format.dart';
 import '../../core/utils/duration_format.dart';
@@ -351,6 +352,23 @@ class SettingsScreen extends ConsumerWidget {
                   await showCheckForUpdatesFlow(context, ref, version.version);
                 },
               );
+            },
+          ),
+          const _SectionHeader('About'),
+          ListTile(
+            leading: const Icon(Icons.code),
+            title: const Text('GitHub repository'),
+            subtitle: const Text('github.com/J0nathan550/SoundScapes'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final launched = await launchUrl(
+                Uri.parse('https://github.com/J0nathan550/SoundScapes'),
+                mode: LaunchMode.externalApplication,
+              );
+              if (!launched) {
+                showAppSnackBar(messenger, 'Could not open the repository link');
+              }
             },
           ),
         ],

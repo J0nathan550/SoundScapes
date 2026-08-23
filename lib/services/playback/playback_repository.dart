@@ -35,17 +35,17 @@ class PlaybackRepository {
     this.onPreparingChanged,
   });
 
-  Future<MediaItem> _toMediaItem(Track track) async {
+  Future<MediaItem> _toMediaItem(Track track, {bool reportPreparing = true}) async {
     await _trackRepository.upsertTrack(track);
     final String localPath;
     if (track.isDownloaded && track.localFilePath != null) {
       localPath = track.localFilePath!;
     } else {
-      onPreparingChanged?.call(track.id, true);
+      if (reportPreparing) onPreparingChanged?.call(track.id, true);
       try {
         localPath = await _cacheService.ensureCached(track);
       } finally {
-        onPreparingChanged?.call(track.id, false);
+        if (reportPreparing) onPreparingChanged?.call(track.id, false);
       }
     }
     return MediaItem(
@@ -97,7 +97,11 @@ class PlaybackRepository {
     for (var i = startIndex + 1; i < tracks.length; i++) {
       if (epoch != _playEpoch) return;
       try {
-        final item = await _toMediaItem(tracks[i]);
+        // reportPreparing: false — this is silent pre-fetching for tracks
+        // the user hasn't reached yet, not the one they tapped. Reporting it
+        // made every row's "preparing" spinner flash on as the background
+        // fill silently walked through the whole list, one row at a time.
+        final item = await _toMediaItem(tracks[i], reportPreparing: false);
         if (epoch != _playEpoch) return;
         await _handler.addQueueItem(item);
       } catch (_) {
@@ -109,7 +113,7 @@ class PlaybackRepository {
     for (var i = startIndex - 1; i >= 0; i--) {
       if (epoch != _playEpoch) return;
       try {
-        final item = await _toMediaItem(tracks[i]);
+        final item = await _toMediaItem(tracks[i], reportPreparing: false);
         if (epoch != _playEpoch) return;
         await _handler.insertQueueItemAt(0, item);
       } catch (_) {}

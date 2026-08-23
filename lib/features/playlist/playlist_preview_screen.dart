@@ -75,6 +75,7 @@ class PlaylistPreviewScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final track = tracks[index];
                     return TrackListTile(
+                      key: ValueKey(track.id),
                       track: track,
                       onTap: () => ref
                           .read(playbackRepositoryProvider)

@@ -103,6 +103,7 @@ class LibraryScreen extends ConsumerWidget {
                 children: [
                   for (final folder in folders)
                     FolderTile(
+                      key: ValueKey(folder.id),
                       folder: folder,
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(

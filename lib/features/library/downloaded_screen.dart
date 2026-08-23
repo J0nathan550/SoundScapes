@@ -47,7 +47,8 @@ class DownloadedScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            for (final task in activeDownloads) _ActiveDownloadTile(task: task),
+            for (final task in activeDownloads)
+              _ActiveDownloadTile(key: ValueKey(task.trackId), task: task),
             if (activeDownloads.any((t) => t.status == DownloadStatus.failed))
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
@@ -74,6 +75,7 @@ class DownloadedScreen extends ConsumerWidget {
                 children: [
                   for (var i = 0; i < tracks.length; i++)
                     TrackListTile(
+                      key: ValueKey(tracks[i].id),
                       track: tracks[i],
                       onTap: () => ref
                           .read(playbackRepositoryProvider)
@@ -151,7 +153,7 @@ class _BatchSummaryHeader extends StatelessWidget {
 class _ActiveDownloadTile extends ConsumerWidget {
   final DownloadTask task;
 
-  const _ActiveDownloadTile({required this.task});
+  const _ActiveDownloadTile({super.key, required this.task});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

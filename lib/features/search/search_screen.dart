@@ -60,8 +60,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               return ListView.builder(
                 padding: const EdgeInsets.only(bottom: 16),
                 itemCount: results.length,
-                itemBuilder: (context, index) =>
-                    SearchResultTile(track: results[index]),
+                itemBuilder: (context, index) => SearchResultTile(
+                  key: ValueKey(results[index].id),
+                  track: results[index],
+                ),
               );
             }
             if (submittedQuery.trim().isEmpty) {
@@ -245,7 +247,8 @@ class _TrendingList extends ConsumerWidget {
                 ),
               );
             }
-            return SearchResultTile(track: tracks[index - 1]);
+            final track = tracks[index - 1];
+            return SearchResultTile(key: ValueKey(track.id), track: track);
           },
         );
       },

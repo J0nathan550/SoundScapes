@@ -107,6 +107,7 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
               }
               final track = state.tracks[index];
               return TrackListTile(
+                key: ValueKey(track.id),
                 track: track,
                 onTap: () => ref
                     .read(playbackRepositoryProvider)
