@@ -25,6 +25,8 @@ class PlaylistResultTile extends StatelessWidget {
               : CachedNetworkImage(
                   imageUrl: playlist.thumbnailUrl,
                   fit: BoxFit.cover,
+                  memCacheWidth: 96,
+                  memCacheHeight: 96,
                   errorWidget: (_, _, _) => Container(
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: const Icon(Icons.playlist_play),

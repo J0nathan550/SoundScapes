@@ -48,75 +48,87 @@ class LibraryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Library')),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 96),
-        children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: const Icon(Icons.favorite),
-            ),
-            title: const Text('Liked Songs'),
-            subtitle: Text('${likedCount ?? 0} songs'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
-              final id = await ref.read(likedSongsFolderIdProvider.future);
-              if (!context.mounted) return;
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => FolderDetailScreen(
-                    folder: Folder(
-                      id: id,
-                      name: 'Liked Songs',
-                      createdAt: DateTime.now(),
-                      isSystem: true,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: const Icon(Icons.favorite),
+              ),
+              title: const Text('Liked Songs'),
+              subtitle: Text('${likedCount ?? 0} songs'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final id = await ref.read(likedSongsFolderIdProvider.future);
+                if (!context.mounted) return;
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => FolderDetailScreen(
+                      folder: Folder(
+                        id: id,
+                        name: 'Liked Songs',
+                        createdAt: DateTime.now(),
+                        isSystem: true,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: const Icon(Icons.download_done),
-            ),
-            title: const Text('Downloaded'),
-            subtitle: Text('${downloadedCount ?? 0} songs'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const DownloadedScreen()),
+                );
+              },
             ),
           ),
-          const Divider(),
+          SliverToBoxAdapter(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: const Icon(Icons.download_done),
+              ),
+              title: const Text('Downloaded'),
+              subtitle: Text('${downloadedCount ?? 0} songs'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const DownloadedScreen()),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: Divider()),
           foldersAsync.when(
             data: (folders) {
               if (folders.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(
-                    child: Text('No folders yet. Tap + to create one.'),
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(
+                      child: Text('No folders yet. Tap + to create one.'),
+                    ),
                   ),
                 );
               }
-              return Column(
-                children: [
-                  for (final folder in folders)
-                    FolderTile(
-                      key: ValueKey(folder.id),
-                      folder: folder,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => FolderDetailScreen(folder: folder),
-                        ),
+              return SliverFixedExtentList.builder(
+                itemCount: folders.length,
+                itemExtent: 56,
+                itemBuilder: (context, index) {
+                  final folder = folders[index];
+                  return FolderTile(
+                    key: ValueKey(folder.id),
+                    folder: folder,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => FolderDetailScreen(folder: folder),
                       ),
                     ),
-                ],
+                  );
+                },
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Failed to load folders: $e')),
+            loading: () => const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => SliverToBoxAdapter(
+              child: Center(child: Text('Failed to load folders: $e')),
+            ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
         ],
       ),
       floatingActionButton: FloatingActionButton(

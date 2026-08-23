@@ -71,6 +71,7 @@ class PlaylistPreviewScreen extends ConsumerWidget {
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).padding.bottom + 16,
                   ),
+                  itemExtent: 72,
                   itemCount: tracks.length,
                   itemBuilder: (context, index) {
                     final track = tracks[index];

@@ -21,7 +21,7 @@ final likedSongsFolderIdProvider = FutureProvider<int>((ref) {
   return ref.watch(folderRepositoryProvider).getOrCreateLikedSongsFolderId();
 });
 
-final isTrackLikedProvider = StreamProvider.family<bool, String>((
+final isTrackLikedProvider = StreamProvider.autoDispose.family<bool, String>((
   ref,
   trackId,
 ) {

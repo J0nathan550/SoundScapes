@@ -22,90 +22,109 @@ class DownloadedScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Downloaded')),
       bottomNavigationBar: const NowPlayingBar(applyBottomSafeArea: true),
-      body: ListView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-        ),
-        children: [
-          if (!batchSummary.isEmpty) _BatchSummaryHeader(summary: batchSummary),
+      body: CustomScrollView(
+        slivers: [
+          if (!batchSummary.isEmpty)
+            SliverToBoxAdapter(child: _BatchSummaryHeader(summary: batchSummary)),
           if (activeDownloads.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'In progress',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  if (activeDownloads.any((t) => t.status != DownloadStatus.failed))
-                    TextButton(
-                      onPressed: () =>
-                          ref.read(downloadQueueControllerProvider.notifier).cancelAll(),
-                      child: const Text('Cancel all'),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'In progress',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                ],
+                    if (activeDownloads.any((t) => t.status != DownloadStatus.failed))
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(downloadQueueControllerProvider.notifier).cancelAll(),
+                        child: const Text('Cancel all'),
+                      ),
+                  ],
+                ),
               ),
             ),
-            for (final task in activeDownloads)
-              _ActiveDownloadTile(key: ValueKey(task.trackId), task: task),
+            SliverList.builder(
+              itemCount: activeDownloads.length,
+              itemBuilder: (context, index) {
+                final task = activeDownloads[index];
+                return _ActiveDownloadTile(key: ValueKey(task.trackId), task: task);
+              },
+            ),
             if (activeDownloads.any((t) => t.status == DownloadStatus.failed))
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () =>
-                        ref.read(downloadQueueControllerProvider.notifier).clearFailed(),
-                    child: const Text('Clear failed'),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () =>
+                          ref.read(downloadQueueControllerProvider.notifier).clearFailed(),
+                      child: const Text('Clear failed'),
+                    ),
                   ),
                 ),
               ),
-            const Divider(),
+            const SliverToBoxAdapter(child: Divider()),
           ],
           downloadedAsync.when(
             data: (tracks) {
               if (tracks.isEmpty && activeDownloads.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('No downloads yet.')),
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: Text('No downloads yet.')),
+                  ),
                 );
               }
-              return Column(
-                children: [
-                  for (var i = 0; i < tracks.length; i++)
-                    TrackListTile(
-                      key: ValueKey(tracks[i].id),
-                      track: tracks[i],
-                      onTap: () => ref
-                          .read(playbackRepositoryProvider)
-                          .playTracks(tracks, startIndex: i),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () async {
-                          final confirmed = await showConfirmDialog(
-                            context,
-                            title: 'Delete download?',
-                            message:
-                                'Delete "${tracks[i].title}" from your downloads? '
-                                'You can re-download it later.',
-                            confirmLabel: 'Delete',
-                          );
-                          if (!confirmed) return;
-                          ref.read(trackRepositoryProvider).deleteDownload(tracks[i].id);
-                        },
-                      ),
+              return SliverFixedExtentList.builder(
+                itemCount: tracks.length,
+                itemExtent: 72,
+                itemBuilder: (context, i) {
+                  return TrackListTile(
+                    key: ValueKey(tracks[i].id),
+                    track: tracks[i],
+                    onTap: () => ref
+                        .read(playbackRepositoryProvider)
+                        .playTracks(tracks, startIndex: i),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        final confirmed = await showConfirmDialog(
+                          context,
+                          title: 'Delete download?',
+                          message:
+                              'Delete "${tracks[i].title}" from your downloads? '
+                              'You can re-download it later.',
+                          confirmLabel: 'Delete',
+                        );
+                        if (!confirmed) return;
+                        ref.read(trackRepositoryProvider).deleteDownload(tracks[i].id);
+                      },
                     ),
-                ],
+                  );
+                },
               );
             },
-            loading: () => const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
+            loading: () => const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
             ),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text('Failed to load downloads: $e'),
+            error: (e, _) => SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('Failed to load downloads: $e'),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 16,
             ),
           ),
         ],

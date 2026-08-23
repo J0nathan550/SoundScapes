@@ -26,8 +26,12 @@ class TrackListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final preparing = ref.watch(preparingTrackIdsProvider).contains(track.id);
-    final isNowPlaying = ref.watch(currentTrackIdProvider) == track.id;
+    final preparing = ref.watch(
+      preparingTrackIdsProvider.select((s) => s.contains(track.id)),
+    );
+    final isNowPlaying = ref.watch(
+      currentTrackIdProvider.select((id) => id == track.id),
+    );
     final isPlaying = isNowPlaying && ref.watch(isPlayingProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -44,6 +48,8 @@ class TrackListTile extends ConsumerWidget {
               child: CachedNetworkImage(
                 imageUrl: track.thumbnailUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 96,
+                memCacheHeight: 96,
                 placeholder: (_, _) => Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                 errorWidget: (_, _, _) => Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,

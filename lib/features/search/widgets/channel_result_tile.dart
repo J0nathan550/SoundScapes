@@ -16,7 +16,11 @@ class ChannelResultTile extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         backgroundImage: channel.thumbnailUrl.isEmpty
             ? null
-            : CachedNetworkImageProvider(channel.thumbnailUrl),
+            : CachedNetworkImageProvider(
+                channel.thumbnailUrl,
+                maxWidth: 96,
+                maxHeight: 96,
+              ),
         child: channel.thumbnailUrl.isEmpty ? const Icon(Icons.person) : null,
       ),
       title: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis),

@@ -59,6 +59,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             if (results.isNotEmpty) {
               return ListView.builder(
                 padding: const EdgeInsets.only(bottom: 16),
+                itemExtent: 72,
                 itemCount: results.length,
                 itemBuilder: (context, index) => SearchResultTile(
                   key: ValueKey(results[index].id),
@@ -112,6 +113,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             }
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 16),
+              itemExtent: 72,
               itemCount: results.length,
               itemBuilder: (context, index) =>
                   PlaylistResultTile(playlist: results[index]),

@@ -48,6 +48,8 @@ class QueueSheet extends ConsumerWidget {
                                     width: 40,
                                     height: 40,
                                     fit: BoxFit.cover,
+                                    memCacheWidth: 80,
+                                    memCacheHeight: 80,
                                   ),
                                 )
                               : const Icon(Icons.music_note),
