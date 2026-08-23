@@ -16,6 +16,18 @@ namespace {
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
 
+/// Window attributes that tint the title bar's background/text, added in
+/// Windows 11 version 22H2 (build 22621). Redefined here since they aren't
+/// in older Windows SDKs; DwmSetWindowAttribute simply ignores them (returns
+/// an error we don't check) on earlier Windows.
+/// See: https://learn.microsoft.com/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+#ifndef DWMWA_CAPTION_COLOR
+#define DWMWA_CAPTION_COLOR 35
+#endif
+#ifndef DWMWA_TEXT_COLOR
+#define DWMWA_TEXT_COLOR 36
+#endif
+
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
 
 /// Registry key for app theme preference.
@@ -214,7 +226,11 @@ Win32Window::MessageHandler(HWND hwnd,
       return 0;
 
     case WM_DWMCOLORIZATIONCOLORCHANGED:
-      UpdateTheme(hwnd);
+      if (has_custom_title_bar_theme_) {
+        ApplyStoredTitleBarTheme();
+      } else {
+        UpdateTheme(hwnd);
+      }
       return 0;
   }
 
@@ -285,4 +301,25 @@ void Win32Window::UpdateTheme(HWND const window) {
     DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE,
                           &enable_dark_mode, sizeof(enable_dark_mode));
   }
+}
+
+void Win32Window::SetTitleBarTheme(bool dark_mode, COLORREF caption_color,
+                                   COLORREF text_color) {
+  has_custom_title_bar_theme_ = true;
+  title_bar_dark_mode_ = dark_mode;
+  title_bar_caption_color_ = caption_color;
+  title_bar_text_color_ = text_color;
+  ApplyStoredTitleBarTheme();
+}
+
+void Win32Window::ApplyStoredTitleBarTheme() {
+  if (!window_handle_) return;
+  BOOL enable_dark_mode = title_bar_dark_mode_;
+  DwmSetWindowAttribute(window_handle_, DWMWA_USE_IMMERSIVE_DARK_MODE,
+                        &enable_dark_mode, sizeof(enable_dark_mode));
+  DwmSetWindowAttribute(window_handle_, DWMWA_CAPTION_COLOR,
+                        &title_bar_caption_color_,
+                        sizeof(title_bar_caption_color_));
+  DwmSetWindowAttribute(window_handle_, DWMWA_TEXT_COLOR,
+                        &title_bar_text_color_, sizeof(title_bar_text_color_));
 }

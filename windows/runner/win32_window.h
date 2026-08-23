@@ -55,6 +55,12 @@ class Win32Window {
   // Return a RECT representing the bounds of the current client area.
   RECT GetClientArea();
 
+  // Applies immersive dark mode and, on Windows 11 22H2+, an accent title
+  // bar color to match the app's theme. On older Windows, the DWM caption/
+  // text color attributes are simply ignored by the OS and only the dark/
+  // light mode takes effect.
+  void SetTitleBarTheme(bool dark_mode, COLORREF caption_color, COLORREF text_color);
+
  protected:
   // Processes and route salient window messages for mouse handling,
   // size change and DPI. Delegates handling of these to member overloads that
@@ -90,7 +96,18 @@ class Win32Window {
   // Update the window frame's theme to match the system theme.
   static void UpdateTheme(HWND const window);
 
+  // Re-applies the last theme set via SetTitleBarTheme (if any) after a
+  // system colorization change, instead of letting UpdateTheme overwrite it
+  // with the system default.
+  void ApplyStoredTitleBarTheme();
+
   bool quit_on_close_ = false;
+
+  // Set once SetTitleBarTheme has been called; see ApplyStoredTitleBarTheme.
+  bool has_custom_title_bar_theme_ = false;
+  bool title_bar_dark_mode_ = false;
+  COLORREF title_bar_caption_color_ = 0;
+  COLORREF title_bar_text_color_ = 0;
 
   // window handle for top level window.
   HWND window_handle_ = nullptr;

@@ -21,6 +21,7 @@ class SettingsService {
   static const _devModeEnabledKey = 'settings.devModeEnabled';
   static const _dismissedUpdateVersionKey = 'settings.dismissedUpdateVersion';
   static const _dismissedUpdateAtKey = 'settings.dismissedUpdateAt';
+  static const _windowsVolumeKey = 'settings.windowsVolume';
 
   final SharedPreferences _prefs;
 
@@ -128,4 +129,12 @@ class SettingsService {
     await _prefs.setString(_dismissedUpdateVersionKey, version);
     await _prefs.setInt(_dismissedUpdateAtKey, at.millisecondsSinceEpoch);
   }
+
+  /// Windows only — there's no hardware volume control on desktop, so the
+  /// app-level volume set via the Now Playing screen's slider is persisted
+  /// here and restored on launch.
+  double get windowsVolume => _prefs.getDouble(_windowsVolumeKey) ?? 1.0;
+
+  Future<void> setWindowsVolume(double value) =>
+      _prefs.setDouble(_windowsVolumeKey, value);
 }

@@ -6,15 +6,18 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <audio_service_win/audio_service_win_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
-#include <permission_handler_windows/permission_handler_windows_plugin.h>
+#include <just_audio_windows/just_audio_windows_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  AudioServiceWinPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("AudioServiceWinPluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
-  PermissionHandlerWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
+  JustAudioWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("JustAudioWindowsPlugin"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
 }

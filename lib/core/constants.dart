@@ -8,11 +8,16 @@ class AppConstants {
 
   static const String cacheSubdirName = 'cache_audio';
 
-  static const String updateApkSubdirName = 'updates';
+  static const String updateDownloadSubdirName = 'updates';
 
   static const String githubOwner = 'J0nathan550';
 
   static const String githubRepo = 'SoundScapes';
+
+  /// Name of the Windows release asset built by .github/workflows/release.yml
+  /// — a zip of the portable Release build. Must match that workflow's
+  /// `Compress-Archive` output name.
+  static const String windowsReleaseAssetName = 'soundscapes-windows.zip';
 
   static const Duration suggestionsDebounce = Duration(milliseconds: 300);
 

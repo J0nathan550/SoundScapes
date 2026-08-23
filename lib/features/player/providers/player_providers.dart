@@ -36,6 +36,12 @@ final playbackErrorsProvider = StreamProvider<PlaybackErrorEvent>((ref) {
   return ref.watch(audioHandlerProvider).playbackErrors;
 });
 
+/// Windows-only: there's no hardware volume control on desktop, so the app
+/// exposes its own. See [NowPlayingScreen]'s volume slider.
+final volumeProvider = StreamProvider<double>((ref) {
+  return ref.watch(audioHandlerProvider).volumeStream;
+});
+
 final positionDataProvider = StreamProvider<PositionData>((ref) {
   final handler = ref.watch(audioHandlerProvider);
   return AudioService.position.map((position) {

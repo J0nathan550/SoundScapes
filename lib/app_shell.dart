@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,6 +46,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   Future<void> _checkForUpdate() async {
+    if (!Platform.isAndroid && !Platform.isWindows) return;
     final packageInfo = await ref.read(packageInfoProvider.future);
     final info = await ref
         .read(updateControllerProvider)

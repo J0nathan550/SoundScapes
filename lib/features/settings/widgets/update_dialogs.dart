@@ -127,7 +127,7 @@ class _DownloadProgressDialog extends ConsumerWidget {
           children: [
             switch (state.status) {
               UpdateDownloadStatus.failed => Text(_friendlyUpdateError(state.errorMessage ?? '')),
-              UpdateDownloadStatus.installing => const Text('Opening installer…'),
+              UpdateDownloadStatus.installing => const Text('Installing update…'),
               _ => Text(
                   state.progressPercent == null
                       ? 'Starting download…'

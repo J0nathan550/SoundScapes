@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +29,10 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final settingsService = SettingsService(prefs);
 
+  if (Platform.isWindows) {
+    await audioHandler.setVolume(settingsService.windowsVolume);
+  } 
+
   runApp(
     ProviderScope(
       overrides: [
@@ -47,11 +54,44 @@ class MainApp extends ConsumerWidget {
     final monochrome =
         ref.watch(themePresetProvider) == AppThemePreset.monochrome ||
         isAchromaticColor(seedColor);
+    final lightTheme = AppTheme.light(seedColor, monochrome: monochrome);
+    final darkTheme = AppTheme.dark(seedColor, monochrome: monochrome);
+
+    if (Platform.isWindows) {
+      final isDark = themeMode == ThemeMode.dark ||
+          (themeMode == ThemeMode.system &&
+              MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+      final Color captionColor;
+      final Color textColor;
+      if (monochrome) {
+        // Material's monochrome scheme deliberately makes primary the
+        // opposite extreme of the background for in-app contrast (white in
+        // dark mode, black in light mode) — the exact opposite of what a
+        // "Black & White" theme's title bar should look like. Use the raw
+        // seed color itself instead, so a black pick reads as black.
+        captionColor = seedColor;
+        textColor = ThemeData.estimateBrightnessForColor(seedColor) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+      } else {
+        final scheme = (isDark ? darkTheme : lightTheme).colorScheme;
+        captionColor = scheme.primary;
+        textColor = scheme.onPrimary;
+      }
+      unawaited(
+        ref.read(windowThemeServiceProvider).setTitleBarTheme(
+              caption: captionColor,
+              text: textColor,
+              darkMode: isDark,
+            ),
+      );
+    }
+
     return MaterialApp(
       title: 'SoundScapes',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(seedColor, monochrome: monochrome),
-      darkTheme: AppTheme.dark(seedColor, monochrome: monochrome),
+      theme: lightTheme,
+      darkTheme: darkTheme,
       themeMode: themeMode,
       home: const AppShell(),
     );

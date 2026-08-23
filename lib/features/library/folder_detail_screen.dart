@@ -142,6 +142,12 @@ class FolderDetailScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: ReorderableListView.builder(
+                  // We supply our own drag handle below (next to the like
+                  // button) instead of the default one: on desktop,
+                  // ReorderableListView otherwise appends its own working
+                  // handle after our trailing content, leaving our manual
+                  // icon just sitting there doing nothing when dragged.
+                  buildDefaultDragHandles: false,
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).padding.bottom + 16,
                   ),
@@ -175,7 +181,10 @@ class FolderDetailScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LikeButton(track: track),
-                            const Icon(Icons.drag_handle),
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: const Icon(Icons.drag_handle),
+                            ),
                           ],
                         ),
                       ),

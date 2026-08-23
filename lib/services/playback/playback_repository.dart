@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 
@@ -110,6 +111,13 @@ class PlaybackRepository {
         // actually try to play one directly.
       }
     }
+    // Windows' just_audio backend (WinRT MediaPlaybackList) doesn't reliably
+    // preserve which item is "current" when items are inserted before it —
+    // in practice, inserting here while the tapped track is still playing
+    // makes playback jump back to the very first item in the list. Other
+    // platforms' players handle this fine, so only skip it on Windows;
+    // "skip previous" just won't have earlier tracks pre-loaded there.
+    if (Platform.isWindows) return;
     for (var i = startIndex - 1; i >= 0; i--) {
       if (epoch != _playEpoch) return;
       try {

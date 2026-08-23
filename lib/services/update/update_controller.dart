@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/update_info.dart';
@@ -83,7 +85,7 @@ class UpdateDownloadController extends Notifier<UpdateDownloadState> {
       progressPercent: 0,
     );
     try {
-      final file = await ref.read(updateServiceProvider).downloadApk(
+      final file = await ref.read(updateServiceProvider).downloadAsset(
         info,
         isCancelled: () => _cancelRequested,
         onProgress: (percent) {
@@ -94,11 +96,17 @@ class UpdateDownloadController extends Notifier<UpdateDownloadState> {
         },
       );
       state = const UpdateDownloadState(status: UpdateDownloadStatus.installing);
-      // No explicit install-permission request here: firing the install
-      // intent below already makes Android show its own "allow from this
-      // source" screen inline when the permission isn't granted, so this
-      // never blocks on anything we don't control.
-      await ref.read(apkInstallerProvider).installApk(file.path);
+      if (Platform.isWindows) {
+        // Extracts the update and relaunches the app; exits this process,
+        // so control never returns here on success.
+        await ref.read(windowsUpdateInstallerProvider).applyUpdate(file.path);
+      } else {
+        // No explicit install-permission request here: firing the install
+        // intent below already makes Android show its own "allow from this
+        // source" screen inline when the permission isn't granted, so this
+        // never blocks on anything we don't control.
+        await ref.read(apkInstallerProvider).installApk(file.path);
+      }
       state = const UpdateDownloadState(status: UpdateDownloadStatus.done);
     } on UpdateDownloadCancelled {
       state = const UpdateDownloadState();

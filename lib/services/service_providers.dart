@@ -19,6 +19,8 @@ import 'playback/playback_repository.dart';
 import 'settings/settings_service.dart';
 import 'update/apk_installer.dart';
 import 'update/update_service.dart';
+import 'update/windows_update_installer.dart';
+import 'window/window_theme_service.dart';
 import 'youtube/authenticated_youtube_http_client.dart';
 import 'youtube/youtube_search_service.dart';
 
@@ -183,6 +185,12 @@ final devModeEnabledProvider = NotifierProvider<DevModeController, bool>(
 final updateServiceProvider = Provider<UpdateService>((ref) => UpdateService());
 
 final apkInstallerProvider = Provider<ApkInstaller>((ref) => ApkInstaller());
+
+final windowsUpdateInstallerProvider =
+    Provider<WindowsUpdateInstaller>((ref) => WindowsUpdateInstaller());
+
+final windowThemeServiceProvider =
+    Provider<WindowThemeService>((ref) => WindowThemeService());
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
   return PackageInfo.fromPlatform();

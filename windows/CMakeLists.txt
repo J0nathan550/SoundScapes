@@ -32,6 +32,12 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Some plugins (e.g. just_audio_windows) use C++/WinRT's <experimental/coroutine>,
+# which newer MSVC toolsets treat as a hard error rather than a deprecation
+# warning. Silence it so those plugins keep compiling until they migrate to
+# <coroutine>.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

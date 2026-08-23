@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/constants.dart';
 import '../../data/models/update_info.dart';
 
-/// Thrown by [UpdateService.downloadApk] when the caller's `isCancelled`
+/// Thrown by [UpdateService.downloadAsset] when the caller's `isCancelled`
 /// check returns true mid-download, so callers can distinguish a deliberate
 /// cancel from a real failure.
 class UpdateDownloadCancelled implements Exception {
@@ -22,7 +22,8 @@ class UpdateService {
 
   /// Checks GitHub for the latest release and returns it only if it's newer
   /// than [currentVersion] (e.g. "1.0.42"). Returns null when already
-  /// current, or when the release has no APK asset.
+  /// current, or when the release has no asset for this platform (an .apk
+  /// on Android, [AppConstants.windowsReleaseAssetName] on Windows).
   Future<UpdateInfo?> fetchLatestIfNewer(String currentVersion) async {
     final response = await http.get(
       _latestReleaseUri,
@@ -40,20 +41,27 @@ class UpdateService {
     final releaseUrl = body['html_url'] as String? ?? '';
 
     final assets = (body['assets'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
-    final apkAsset = assets.cast<Map<String, dynamic>?>().firstWhere(
-      (a) => (a?['name'] as String?)?.toLowerCase().endsWith('.apk') ?? false,
+    final asset = assets.cast<Map<String, dynamic>?>().firstWhere(
+      (a) => _matchesThisPlatform(a?['name'] as String?),
       orElse: () => null,
     );
-    if (apkAsset == null) return null;
+    if (asset == null) return null;
 
     if (!_isNewer(version, currentVersion)) return null;
 
     return UpdateInfo(
       version: version,
-      apkDownloadUrl: apkAsset['browser_download_url'] as String,
-      apkSizeBytes: (apkAsset['size'] as num?)?.toInt() ?? 0,
+      assetDownloadUrl: asset['browser_download_url'] as String,
+      assetSizeBytes: (asset['size'] as num?)?.toInt() ?? 0,
       releaseUrl: releaseUrl,
     );
+  }
+
+  bool _matchesThisPlatform(String? assetName) {
+    if (assetName == null) return false;
+    if (Platform.isAndroid) return assetName.toLowerCase().endsWith('.apk');
+    if (Platform.isWindows) return assetName == AppConstants.windowsReleaseAssetName;
+    return false;
   }
 
   bool _isNewer(String latest, String current) {
@@ -76,21 +84,21 @@ class UpdateService {
 
   Future<Directory> _updatesDir() async {
     final tempDir = await getTemporaryDirectory();
-    final dir = Directory(p.join(tempDir.path, AppConstants.updateApkSubdirName));
+    final dir = Directory(p.join(tempDir.path, AppConstants.updateDownloadSubdirName));
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
   }
 
-  /// Downloads the release APK, reporting progress from 0.0-100.0. Returns
-  /// the downloaded file. Any failure (including cancellation) leaves no
-  /// partial file behind.
+  /// Downloads the release asset (.apk on Android, .zip on Windows),
+  /// reporting progress from 0.0-100.0. Returns the downloaded file. Any
+  /// failure (including cancellation) leaves no partial file behind.
   ///
   /// [isCancelled], if given, is polled between chunks; when it returns
   /// true the download stops and throws [UpdateDownloadCancelled]. Checking
   /// a flag per-chunk (rather than e.g. closing the client from outside)
   /// keeps cancellation reliable regardless of the underlying transport's
   /// exact close semantics.
-  Future<File> downloadApk(
+  Future<File> downloadAsset(
     UpdateInfo info, {
     void Function(double percent)? onProgress,
     bool Function()? isCancelled,
@@ -101,18 +109,19 @@ class UpdateService {
       if (entity is File) await entity.delete();
     }
 
-    final partFile = File(p.join(dir.path, '${info.version}.apk.part'));
-    final finalFile = File(p.join(dir.path, '${info.version}.apk'));
+    final ext = p.extension(info.assetDownloadUrl);
+    final partFile = File(p.join(dir.path, '${info.version}$ext.part'));
+    final finalFile = File(p.join(dir.path, '${info.version}$ext'));
 
     final client = http.Client();
     try {
-      final request = http.Request('GET', Uri.parse(info.apkDownloadUrl));
+      final request = http.Request('GET', Uri.parse(info.assetDownloadUrl));
       final response = await client.send(request);
       if (response.statusCode != 200) {
         throw Exception('Download failed with status ${response.statusCode}');
       }
 
-      final total = response.contentLength ?? info.apkSizeBytes;
+      final total = response.contentLength ?? info.assetSizeBytes;
       var received = 0;
       final sink = partFile.openWrite();
       try {

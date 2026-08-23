@@ -19,6 +19,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Stream<void> get queueCompleted => _player.processingStateStream
       .where((state) => state == ProcessingState.completed);
 
+  Stream<double> get volumeStream => _player.volumeStream;
+
+  double get volume => _player.volume;
+
+  Future<void> setVolume(double volume) => _player.setVolume(volume);
+
   AudioPlayerHandler() {
     _init();
   }

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "soundscapes" "\0"
+            VALUE "CompanyName", "J0nathan550" "\0"
+            VALUE "FileDescription", "SoundScapes" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "soundscapes" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 J0nathan550. All rights reserved." "\0"
             VALUE "OriginalFilename", "soundscapes.exe" "\0"
-            VALUE "ProductName", "soundscapes" "\0"
+            VALUE "ProductName", "SoundScapes" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

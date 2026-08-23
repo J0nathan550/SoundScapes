@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/utils/duration_format.dart';
 import '../../core/widgets/app_snackbar.dart';
 import '../../services/playback/sleep_timer_controller.dart';
@@ -10,6 +11,7 @@ import '../../services/service_providers.dart';
 import 'providers/player_providers.dart';
 import 'queue_sheet.dart';
 import 'widgets/sleep_timer_sheet.dart';
+import 'widgets/volume_controls.dart';
 
 class NowPlayingScreen extends ConsumerWidget {
   const NowPlayingScreen({super.key});
@@ -189,6 +191,7 @@ class NowPlayingScreen extends ConsumerWidget {
                     ),
                     onPressed: playbackRepo.cycleRepeatMode,
                   ),
+                  if (Platform.isWindows) const VolumeSliderCompact(),
                 ],
               ),
             ],

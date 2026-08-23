@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/service_providers.dart';
 import 'now_playing_screen.dart';
 import 'providers/player_providers.dart';
+import 'widgets/volume_controls.dart';
 
 class NowPlayingBar extends ConsumerWidget {
   /// Whether to pad for the Android system nav bar ourselves. Screens that
@@ -97,6 +100,7 @@ class NowPlayingBar extends ConsumerWidget {
                     icon: const Icon(Icons.skip_next),
                     onPressed: handler.skipToNext,
                   ),
+                  if (Platform.isWindows) const VolumeSliderCompact(),
                   const SizedBox(width: 4),
                 ],
               ),
