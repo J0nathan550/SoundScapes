@@ -1,7 +1,12 @@
 #ifndef RUNNER_WIN32_WINDOW_H_
 #define RUNNER_WIN32_WINDOW_H_
 
+// windows.h must precede shellapi.h/shobjidl.h — both rely on macros and
+// types (EXTERN_C, HDROP, etc.) that only windows.h defines.
 #include <windows.h>
+
+#include <shellapi.h>
+#include <shobjidl.h>
 
 #include <functional>
 #include <memory>
@@ -61,6 +66,26 @@ class Win32Window {
   // light mode takes effect.
   void SetTitleBarTheme(bool dark_mode, COLORREF caption_color, COLORREF text_color);
 
+  // Shows a determinate progress overlay on the taskbar icon. |fraction| is
+  // clamped to [0.0, 1.0]. Lazily creates the ITaskbarList3 COM object on
+  // first use.
+  void SetTaskbarProgress(double fraction);
+
+  // Clears the taskbar icon's progress overlay.
+  void ClearTaskbarProgress();
+
+  // Adds this window to the notification area (tray) using the app icon,
+  // with |tooltip| as its hover text. Once enabled, the window's close
+  // button hides the window instead of quitting the app — left-clicking (or
+  // double-clicking) the tray icon shows it again, and right-clicking opens
+  // a menu with "Show SoundScapes" / "Close app completely", the latter
+  // being the only way to actually exit once this is on.
+  void EnableTrayIcon(const std::wstring& tooltip);
+
+  // Removes the tray icon, if present. Also called from Destroy, so the
+  // icon never lingers after the window is gone.
+  void DisableTrayIcon();
+
  protected:
   // Processes and route salient window messages for mouse handling,
   // size change and DPI. Delegates handling of these to member overloads that
@@ -101,6 +126,21 @@ class Win32Window {
   // with the system default.
   void ApplyStoredTitleBarTheme();
 
+  // Returns the lazily-created ITaskbarList3 instance, or nullptr if it
+  // couldn't be created (e.g. COM not initialized).
+  ITaskbarList3* GetTaskbarList();
+
+  // Un-hides and focuses the window; used by both the tray icon's own click
+  // and its menu's "Show SoundScapes" item.
+  void ShowFromTray();
+
+  // Opens the tray icon's right-click menu at the current cursor position.
+  void ShowTrayContextMenu();
+
+  // Actually exits the app via the tray menu's "Close app completely",
+  // bypassing the close-to-tray behavior WM_CLOSE otherwise applies.
+  void QuitFromTray();
+
   bool quit_on_close_ = false;
 
   // Set once SetTitleBarTheme has been called; see ApplyStoredTitleBarTheme.
@@ -108,6 +148,13 @@ class Win32Window {
   bool title_bar_dark_mode_ = false;
   COLORREF title_bar_caption_color_ = 0;
   COLORREF title_bar_text_color_ = 0;
+
+  // Lazily created by GetTaskbarList; released in Destroy.
+  ITaskbarList3* taskbar_list_ = nullptr;
+
+  // Set by EnableTrayIcon; cleared (and the icon removed) by DisableTrayIcon.
+  bool tray_icon_enabled_ = false;
+  NOTIFYICONDATAW tray_icon_data_ = {};
 
   // window handle for top level window.
   HWND window_handle_ = nullptr;

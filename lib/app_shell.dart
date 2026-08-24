@@ -65,6 +65,12 @@ class _AppShellState extends ConsumerState<AppShell> {
     });
     ref.listen(downloadBatchSummaryProvider, (previous, next) {
       ref.read(downloadNotificationServiceProvider).showOrUpdate(next);
+      final taskbarProgress = ref.read(taskbarProgressServiceProvider);
+      if (next.isActive) {
+        taskbarProgress.setProgress((next.completed + next.failed) / next.total);
+      } else {
+        taskbarProgress.clear();
+      }
     });
     final downloadsRemaining = ref.watch(downloadBatchSummaryProvider).remaining;
 

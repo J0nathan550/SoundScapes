@@ -37,12 +37,23 @@ class DownloadedScreen extends ConsumerWidget {
                       'In progress',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    if (activeDownloads.any((t) => t.status != DownloadStatus.failed))
-                      TextButton(
-                        onPressed: () =>
-                            ref.read(downloadQueueControllerProvider.notifier).cancelAll(),
-                        child: const Text('Cancel all'),
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (activeDownloads.any((t) => t.status == DownloadStatus.failed))
+                          TextButton(
+                            onPressed: () =>
+                                ref.read(downloadQueueControllerProvider.notifier).clearFailed(),
+                            child: const Text('Dismiss all'),
+                          ),
+                        if (activeDownloads.any((t) => t.status != DownloadStatus.failed))
+                          TextButton(
+                            onPressed: () =>
+                                ref.read(downloadQueueControllerProvider.notifier).cancelAll(),
+                            child: const Text('Cancel all'),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -54,20 +65,6 @@ class DownloadedScreen extends ConsumerWidget {
                 return _ActiveDownloadTile(key: ValueKey(task.trackId), task: task);
               },
             ),
-            if (activeDownloads.any((t) => t.status == DownloadStatus.failed))
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () =>
-                          ref.read(downloadQueueControllerProvider.notifier).clearFailed(),
-                      child: const Text('Clear failed'),
-                    ),
-                  ),
-                ),
-              ),
             const SliverToBoxAdapter(child: Divider()),
           ],
           downloadedAsync.when(

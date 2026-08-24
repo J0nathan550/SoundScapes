@@ -56,11 +56,9 @@ class PlaylistPreviewScreen extends ConsumerWidget {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.shuffle),
                         label: const Text('Shuffle'),
-                        onPressed: () async {
-                          final repo = ref.read(playbackRepositoryProvider);
-                          await repo.playTracks(tracks);
-                          await repo.toggleShuffle();
-                        },
+                        onPressed: () => ref
+                            .read(playbackRepositoryProvider)
+                            .playTracksShuffled(tracks),
                       ),
                     ),
                   ],

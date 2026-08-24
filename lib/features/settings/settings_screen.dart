@@ -240,8 +240,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   ListTile(
                     leading: const Icon(Icons.download_outlined),
-                    title: const Text('Import from folder'),
-                    enabled: configured,
+                    title: const Text('Import from file'),
+                    subtitle: const Text('Choose a backup .json file to restore'),
                     onTap: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
@@ -267,7 +267,8 @@ class SettingsScreen extends ConsumerWidget {
                       if (confirmed != true || !context.mounted) return;
                       final messenger = ScaffoldMessenger.of(context);
                       try {
-                        final summary = await ref.read(backupServiceProvider).importNow();
+                        final summary = await ref.read(backupServiceProvider).importFromFile();
+                        if (summary == null) return;
                         showAppSnackBar(
                           messenger,
                           'Imported ${summary.folderCount} folders, '

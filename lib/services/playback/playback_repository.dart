@@ -138,6 +138,18 @@ class PlaybackRepository {
     } catch (_) {}
   }
 
+  /// Plays [tracks] in randomized order. Shuffling the list up front — rather
+  /// than playing in original order and toggling shuffle mode afterward —
+  /// avoids a race with [playTracks]'s background queue fill: that fill
+  /// starts appending the remaining tracks in original order right away, so
+  /// flipping shuffle mode after the fact only ever reshuffles the handful
+  /// of items that happened to be queued by that point.
+  Future<void> playTracksShuffled(List<Track> tracks) async {
+    if (tracks.isEmpty) return;
+    final shuffled = List<Track>.of(tracks)..shuffle();
+    await playTracks(shuffled);
+  }
+
   Future<void> enqueueAndContinue(List<Track> tracks) async {
     final items = await Future.wait(tracks.map(_toMediaItem));
     await _handler.addQueueItems(items);

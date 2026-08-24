@@ -36,7 +36,7 @@ class VolumeSliderCompact extends ConsumerWidget {
           onPressed: () => _setVolume(ref, volume > 0 ? 0 : 1),
         ),
         SizedBox(
-          width: 80,
+          width: 160,
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 2,

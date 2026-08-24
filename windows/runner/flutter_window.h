@@ -31,8 +31,10 @@ class FlutterWindow : public Win32Window {
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
 
-  // Channel the Dart side uses to push theme-matched title bar colors down
-  // to SetTitleBarTheme; see MainApp in main.dart.
+  // Channel the Dart side uses to push window-chrome state down: title bar
+  // colors (SetTitleBarTheme) and taskbar progress (SetTaskbarProgress /
+  // ClearTaskbarProgress). See WindowThemeService and TaskbarProgressService
+  // in lib/services/window/.
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       window_channel_;
 };

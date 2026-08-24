@@ -31,6 +31,13 @@ std::optional<bool> GetBool(const flutter::EncodableMap& map, const char* key) {
   return std::nullopt;
 }
 
+std::optional<double> GetDouble(const flutter::EncodableMap& map, const char* key) {
+  auto it = map.find(flutter::EncodableValue(std::string(key)));
+  if (it == map.end()) return std::nullopt;
+  if (auto v = std::get_if<double>(&it->second)) return *v;
+  return std::nullopt;
+}
+
 }  // namespace
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
@@ -62,20 +69,33 @@ bool FlutterWindow::OnCreate() {
   window_channel_->SetMethodCallHandler(
       [this](const flutter::MethodCall<flutter::EncodableValue>& call,
              std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-        if (call.method_name() != "setTitleBarColors") {
-          result->NotImplemented();
-          return;
-        }
+        const auto& method = call.method_name();
         const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
-        auto caption = args ? GetInt(*args, "caption") : std::nullopt;
-        auto text = args ? GetInt(*args, "text") : std::nullopt;
-        auto dark_mode = args ? GetBool(*args, "darkMode") : std::nullopt;
-        if (!caption || !text || !dark_mode) {
-          result->Error("bad_args", "Expected caption, text (ARGB ints) and darkMode (bool)");
-          return;
+
+        if (method == "setTitleBarColors") {
+          auto caption = args ? GetInt(*args, "caption") : std::nullopt;
+          auto text = args ? GetInt(*args, "text") : std::nullopt;
+          auto dark_mode = args ? GetBool(*args, "darkMode") : std::nullopt;
+          if (!caption || !text || !dark_mode) {
+            result->Error("bad_args", "Expected caption, text (ARGB ints) and darkMode (bool)");
+            return;
+          }
+          SetTitleBarTheme(*dark_mode, ArgbToColorRef(*caption), ArgbToColorRef(*text));
+          result->Success();
+        } else if (method == "setTaskbarProgress") {
+          auto progress = args ? GetDouble(*args, "progress") : std::nullopt;
+          if (!progress) {
+            result->Error("bad_args", "Expected a progress double");
+            return;
+          }
+          SetTaskbarProgress(*progress);
+          result->Success();
+        } else if (method == "clearTaskbarProgress") {
+          ClearTaskbarProgress();
+          result->Success();
+        } else {
+          result->NotImplemented();
         }
-        SetTitleBarTheme(*dark_mode, ArgbToColorRef(*caption), ArgbToColorRef(*text));
-        result->Success();
       });
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

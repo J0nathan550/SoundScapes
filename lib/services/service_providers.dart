@@ -20,6 +20,7 @@ import 'settings/settings_service.dart';
 import 'update/apk_installer.dart';
 import 'update/update_service.dart';
 import 'update/windows_update_installer.dart';
+import 'window/taskbar_progress_service.dart';
 import 'window/window_theme_service.dart';
 import 'youtube/authenticated_youtube_http_client.dart';
 import 'youtube/youtube_search_service.dart';
@@ -191,6 +192,9 @@ final windowsUpdateInstallerProvider =
 
 final windowThemeServiceProvider =
     Provider<WindowThemeService>((ref) => WindowThemeService());
+
+final taskbarProgressServiceProvider =
+    Provider<TaskbarProgressService>((ref) => TaskbarProgressService());
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
   return PackageInfo.fromPlatform();

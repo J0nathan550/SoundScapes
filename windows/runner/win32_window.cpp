@@ -3,6 +3,9 @@
 #include <dwmapi.h>
 #include <flutter_windows.h>
 
+#include <algorithm>
+#include <wchar.h>
+
 #include "resource.h"
 
 namespace {
@@ -29,6 +32,13 @@ namespace {
 #endif
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
+
+// Custom "the tray icon was clicked" message, and the ids identifying the
+// tray icon itself and its two context menu items.
+constexpr UINT kTrayIconMessage = WM_APP + 1;
+constexpr UINT kTrayIconId = 1;
+constexpr UINT_PTR kTrayMenuIdShow = 1;
+constexpr UINT_PTR kTrayMenuIdExit = 2;
 
 /// Registry key for app theme preference.
 ///
@@ -232,6 +242,38 @@ Win32Window::MessageHandler(HWND hwnd,
         UpdateTheme(hwnd);
       }
       return 0;
+
+    case WM_CLOSE:
+      if (tray_icon_enabled_) {
+        ShowWindow(hwnd, SW_HIDE);
+        return 0;
+      }
+      break;
+
+    case kTrayIconMessage:
+      switch (lparam) {
+        case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
+          ShowFromTray();
+          return 0;
+        case WM_RBUTTONUP:
+          ShowTrayContextMenu();
+          return 0;
+      }
+      return 0;
+
+    case WM_COMMAND:
+      if (tray_icon_enabled_) {
+        switch (LOWORD(wparam)) {
+          case kTrayMenuIdShow:
+            ShowFromTray();
+            return 0;
+          case kTrayMenuIdExit:
+            QuitFromTray();
+            return 0;
+        }
+      }
+      break;
   }
 
   return DefWindowProc(window_handle_, message, wparam, lparam);
@@ -240,6 +282,12 @@ Win32Window::MessageHandler(HWND hwnd,
 void Win32Window::Destroy() {
   OnDestroy();
 
+  DisableTrayIcon();
+
+  if (taskbar_list_) {
+    taskbar_list_->Release();
+    taskbar_list_ = nullptr;
+  }
   if (window_handle_) {
     DestroyWindow(window_handle_);
     window_handle_ = nullptr;
@@ -322,4 +370,91 @@ void Win32Window::ApplyStoredTitleBarTheme() {
                         sizeof(title_bar_caption_color_));
   DwmSetWindowAttribute(window_handle_, DWMWA_TEXT_COLOR,
                         &title_bar_text_color_, sizeof(title_bar_text_color_));
+}
+
+ITaskbarList3* Win32Window::GetTaskbarList() {
+  if (!taskbar_list_) {
+    if (FAILED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER,
+                                IID_ITaskbarList3,
+                                reinterpret_cast<void**>(&taskbar_list_)))) {
+      return nullptr;
+    }
+    if (FAILED(taskbar_list_->HrInit())) {
+      taskbar_list_->Release();
+      taskbar_list_ = nullptr;
+      return nullptr;
+    }
+  }
+  return taskbar_list_;
+}
+
+void Win32Window::SetTaskbarProgress(double fraction) {
+  if (!window_handle_) return;
+  ITaskbarList3* taskbar = GetTaskbarList();
+  if (!taskbar) return;
+  constexpr ULONGLONG kTotal = 10000;
+  ULONGLONG completed =
+      static_cast<ULONGLONG>(std::clamp(fraction, 0.0, 1.0) * kTotal);
+  taskbar->SetProgressState(window_handle_, TBPF_NORMAL);
+  taskbar->SetProgressValue(window_handle_, completed, kTotal);
+}
+
+void Win32Window::ClearTaskbarProgress() {
+  if (!window_handle_) return;
+  ITaskbarList3* taskbar = GetTaskbarList();
+  if (!taskbar) return;
+  taskbar->SetProgressState(window_handle_, TBPF_NOPROGRESS);
+}
+
+void Win32Window::EnableTrayIcon(const std::wstring& tooltip) {
+  if (!window_handle_ || tray_icon_enabled_) return;
+
+  tray_icon_data_ = {};
+  tray_icon_data_.cbSize = sizeof(NOTIFYICONDATAW);
+  tray_icon_data_.hWnd = window_handle_;
+  tray_icon_data_.uID = kTrayIconId;
+  tray_icon_data_.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
+  tray_icon_data_.uCallbackMessage = kTrayIconMessage;
+  tray_icon_data_.hIcon =
+      LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_APP_ICON));
+  wcsncpy_s(tray_icon_data_.szTip, tooltip.c_str(), _TRUNCATE);
+
+  tray_icon_enabled_ = Shell_NotifyIconW(NIM_ADD, &tray_icon_data_);
+}
+
+void Win32Window::DisableTrayIcon() {
+  if (!tray_icon_enabled_) return;
+  Shell_NotifyIconW(NIM_DELETE, &tray_icon_data_);
+  tray_icon_enabled_ = false;
+}
+
+void Win32Window::ShowFromTray() {
+  if (!window_handle_) return;
+  ShowWindow(window_handle_, SW_RESTORE);
+  SetForegroundWindow(window_handle_);
+}
+
+void Win32Window::ShowTrayContextMenu() {
+  if (!window_handle_) return;
+
+  POINT cursor;
+  GetCursorPos(&cursor);
+
+  HMENU menu = CreatePopupMenu();
+  AppendMenuW(menu, MF_STRING, kTrayMenuIdShow, L"Show SoundScapes");
+  AppendMenuW(menu, MF_STRING, kTrayMenuIdExit, L"Close app completely");
+
+  // The foreground-window dance is required for the menu to dismiss itself
+  // when the user clicks away instead of staying stuck open; see
+  // https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw#remarks
+  SetForegroundWindow(window_handle_);
+  TrackPopupMenu(menu, TPM_RIGHTBUTTON, cursor.x, cursor.y, 0, window_handle_,
+                nullptr);
+  PostMessage(window_handle_, WM_NULL, 0, 0);
+  DestroyMenu(menu);
+}
+
+void Win32Window::QuitFromTray() {
+  if (!window_handle_) return;
+  DestroyWindow(window_handle_);
 }

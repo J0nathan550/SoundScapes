@@ -113,27 +113,18 @@ class BackupService {
     }
   }
 
-  Future<BackupImportSummary> importNow() async {
-    final ref = _settings.backupFolderRef;
-    if (ref == null) throw StateError('No backup folder configured');
+  /// Lets the user pick a backup `.json` file directly — from anywhere on
+  /// disk, not just the configured backup folder — and restores from it.
+  /// Returns null if the user cancels the picker.
+  Future<BackupImportSummary?> importFromFile() async {
+    final picked = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (picked == null) return null;
 
-    final String jsonString;
-    if (Platform.isAndroid) {
-      final child = await _safUtil.child(ref, [_backupFileName]);
-      if (child == null) {
-        throw StateError('No backup file found in the chosen folder');
-      }
-      final bytes = await _safStream.readFileBytes(child.uri);
-      jsonString = utf8.decode(bytes);
-    } else {
-      final file = File('$ref${Platform.pathSeparator}$_backupFileName');
-      if (!await file.exists()) {
-        throw StateError('No backup file found in the chosen folder');
-      }
-      jsonString = await file.readAsString();
-    }
-
-    final payload = jsonDecode(jsonString) as Map<String, dynamic>;
+    final bytes = await picked.readAsBytes();
+    final payload = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
     return _restore(payload);
   }
 
