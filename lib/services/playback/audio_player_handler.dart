@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
@@ -9,21 +10,45 @@ import 'package:rxdart/rxdart.dart';
 import '../../core/utils/error_format.dart';
 import '../../data/models/playback_error_event.dart';
 
+/// just_audio_windows sets volume as a raw linear amplitude scalar (WinRT
+/// MediaPlayer.Volume), but human loudness perception is roughly
+/// logarithmic — a linear slider leaves most of its low end still clearly
+/// audible (5% only trims level by ~26 dB) and crams nearly all the
+/// perceptible change into its top end. This maps the slider's linear 0-1
+/// position onto a -50..0 dB range before it reaches the player, so equal
+/// steps on the slider feel like equal steps in loudness. 0 stays hard mute
+/// rather than landing on -50 dB, which is still faintly audible.
+double _sliderToAmplitude(double slider) {
+  if (slider <= 0) return 0;
+  const minDb = -50.0;
+  final db = minDb * (1 - slider);
+  return math.pow(10, db / 20).toDouble();
+}
+
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player = AudioPlayer();
   final Expando<MediaItem> _mediaItemExpando = Expando<MediaItem>();
   final _playbackErrors = StreamController<PlaybackErrorEvent>.broadcast();
+
+  // The slider's own linear 0-1 position, as shown/persisted — distinct
+  // from the curved amplitude actually sent to the player; see
+  // [_sliderToAmplitude] and [setVolume].
+  final _volume = BehaviorSubject<double>.seeded(1.0);
 
   Stream<PlaybackErrorEvent> get playbackErrors => _playbackErrors.stream;
 
   Stream<void> get queueCompleted => _player.processingStateStream
       .where((state) => state == ProcessingState.completed);
 
-  Stream<double> get volumeStream => _player.volumeStream;
+  Stream<double> get volumeStream => _volume.stream;
 
-  double get volume => _player.volume;
+  double get volume => _volume.value;
 
-  Future<void> setVolume(double volume) => _player.setVolume(volume);
+  Future<void> setVolume(double volume) {
+    final clamped = volume.clamp(0.0, 1.0);
+    _volume.add(clamped);
+    return _player.setVolume(_sliderToAmplitude(clamped));
+  }
 
   AudioPlayerHandler() {
     _init();

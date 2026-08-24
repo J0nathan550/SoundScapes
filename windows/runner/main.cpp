@@ -48,6 +48,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     CreateAndAttachConsole();
   }
 
+  // Only one instance should ever be running: if SoundScapes is already
+  // open (including hidden in the tray), this asks it to show itself
+  // instead of launching a second, independent instance.
+  if (!EnsureSingleInstance()) {
+    return EXIT_SUCCESS;
+  }
+
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);

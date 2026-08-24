@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <wchar.h>
 
+#include "app_identity.h"
 #include "resource.h"
 
 namespace {
@@ -39,6 +40,11 @@ constexpr UINT kTrayIconMessage = WM_APP + 1;
 constexpr UINT kTrayIconId = 1;
 constexpr UINT_PTR kTrayMenuIdShow = 1;
 constexpr UINT_PTR kTrayMenuIdExit = 2;
+
+// Resolves to the same message ID in every SoundScapes process; see
+// EnsureSingleInstance, which broadcasts it to ask a running instance (this
+// one) to show itself instead of a second instance opening.
+const UINT kShowInstanceMessage = RegisterWindowMessageW(kShowInstanceMessageName);
 
 /// Registry key for app theme preference.
 ///
@@ -200,6 +206,11 @@ Win32Window::MessageHandler(HWND hwnd,
                             UINT const message,
                             WPARAM const wparam,
                             LPARAM const lparam) noexcept {
+  if (message == kShowInstanceMessage) {
+    ShowFromTray();
+    return 0;
+  }
+
   switch (message) {
     case WM_DESTROY:
       window_handle_ = nullptr;

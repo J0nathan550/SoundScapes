@@ -12,7 +12,12 @@
 
 #include <string>
 
+const wchar_t kShowInstanceMessageName[] = L"J0nathan550.SoundScapes.ShowInstance";
+
 namespace {
+
+constexpr wchar_t kSingleInstanceMutexName[] =
+    L"J0nathan550.SoundScapes.SingleInstance";
 
 std::wstring GetShortcutPath(const wchar_t* app_name) {
   PWSTR programs_path = nullptr;
@@ -39,6 +44,22 @@ bool ShortcutTargetMatches(IShellLinkW* shell_link, const wchar_t* exe_path) {
 }
 
 }  // namespace
+
+bool EnsureSingleInstance() {
+  HANDLE mutex = ::CreateMutexW(nullptr, FALSE, kSingleInstanceMutexName);
+  bool already_running = mutex != nullptr && ::GetLastError() == ERROR_ALREADY_EXISTS;
+  if (!already_running) {
+    // Deliberately not closed/released: this handle needs to keep holding
+    // the mutex for the app's whole lifetime, and the OS reclaims it when
+    // the process exits regardless.
+    return true;
+  }
+
+  UINT show_message = ::RegisterWindowMessageW(kShowInstanceMessageName);
+  ::PostMessage(HWND_BROADCAST, show_message, 0, 0);
+  ::CloseHandle(mutex);
+  return false;
+}
 
 void EnsureStartMenuShortcut(const wchar_t* app_name, const wchar_t* aumid) {
   wchar_t exe_path[MAX_PATH] = {};
