@@ -164,6 +164,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Unlike Windows (which reads its version from a compiled-in resource
+      # fed by CMake -D flags that already honor --build-name/--build-number)
+      # and Android (same, via Gradle), package_info_plus's Linux
+      # implementation reads a plain data/flutter_assets/version.json that
+      # Flutter generates straight from pubspec.yaml's static `version:`
+      # field — it ignores --build-name/--build-number entirely. Rewriting
+      # pubspec.yaml here, right before the build, is what actually lands the
+      # real version in that file.
+      - name: Set pubspec version for this build
+        run: |
+          sed -i "s/^version: .*/version: ${{ needs.version.outputs.version }}+${{ needs.version.outputs.build_number }}/" pubspec.yaml
+
       # libmpv-dev backs just_audio_media_kit's audio playback; libsecret-1-dev
       # is flutter_secure_storage's Linux implementation (GNOME
       # Keyring/KWallet via the Secret Service API); the rest are for the
