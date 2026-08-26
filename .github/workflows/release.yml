@@ -164,12 +164,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # libmpv-dev backs just_audio_media_kit's audio playback; the rest are
-      # for the native runner (tray icon, GTK) — see linux/CMakeLists.txt.
+      # libmpv-dev backs just_audio_media_kit's audio playback; libsecret-1-dev
+      # is flutter_secure_storage's Linux implementation (GNOME
+      # Keyring/KWallet via the Secret Service API); the rest are for the
+      # native runner (tray icon, GTK) — see linux/CMakeLists.txt.
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libmpv-dev ninja-build
+          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libmpv-dev libsecret-1-dev ninja-build
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
