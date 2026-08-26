@@ -100,7 +100,7 @@ class NowPlayingBar extends ConsumerWidget {
                     icon: const Icon(Icons.skip_next),
                     onPressed: handler.skipToNext,
                   ),
-                  if (Platform.isWindows) const VolumeSliderCompact(),
+                  if (Platform.isWindows || Platform.isLinux) const VolumeSliderCompact(),
                   const SizedBox(width: 4),
                 ],
               ),

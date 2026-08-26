@@ -46,7 +46,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   Future<void> _checkForUpdate() async {
-    if (!Platform.isAndroid && !Platform.isWindows) return;
+    if (!Platform.isAndroid && !Platform.isWindows && !Platform.isLinux) return;
     final packageInfo = await ref.read(packageInfoProvider.future);
     final info = await ref
         .read(updateControllerProvider)

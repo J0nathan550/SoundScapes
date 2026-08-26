@@ -7,7 +7,11 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "soundscapes")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.soundscapes")
+#
+# Matches the identity already used elsewhere in this project (Android's
+# applicationId/namespace, the AudioService notification channel id) — see
+# android/app/build.gradle.kts and lib/main.dart.
+set(APPLICATION_ID "com.j0nathan550.soundscapes")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -53,6 +57,9 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
+# Tray icon (see runner/window_chrome.cc) — the StatusNotifierItem/D-Bus
+# standard KDE/XFCE/Cinnamon speak natively.
+pkg_check_modules(APPINDICATOR REQUIRED IMPORTED_TARGET ayatana-appindicator3-0.1)
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
@@ -98,6 +105,12 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
   COMPONENT Runtime)
 
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+
+# Window icon (see my_application.cc, which resolves this at runtime relative
+# to the executable's own directory so the bundle stays relocatable).
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png"
+  DESTINATION "${INSTALL_BUNDLE_DATA_DIR}/icons"
   COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})

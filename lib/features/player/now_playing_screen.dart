@@ -191,7 +191,7 @@ class NowPlayingScreen extends ConsumerWidget {
                     ),
                     onPressed: playbackRepo.cycleRepeatMode,
                   ),
-                  if (Platform.isWindows) const VolumeSliderCompact(),
+                  if (Platform.isWindows || Platform.isLinux) const VolumeSliderCompact(),
                 ],
               ),
             ],

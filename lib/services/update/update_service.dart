@@ -23,7 +23,8 @@ class UpdateService {
   /// Checks GitHub for the latest release and returns it only if it's newer
   /// than [currentVersion] (e.g. "1.0.42"). Returns null when already
   /// current, or when the release has no asset for this platform (an .apk
-  /// on Android, [AppConstants.windowsReleaseAssetName] on Windows).
+  /// on Android, [AppConstants.windowsReleaseAssetName] on Windows,
+  /// [AppConstants.linuxReleaseAssetName] on Linux).
   Future<UpdateInfo?> fetchLatestIfNewer(String currentVersion) async {
     final response = await http.get(
       _latestReleaseUri,
@@ -61,6 +62,7 @@ class UpdateService {
     if (assetName == null) return false;
     if (Platform.isAndroid) return assetName.toLowerCase().endsWith('.apk');
     if (Platform.isWindows) return assetName == AppConstants.windowsReleaseAssetName;
+    if (Platform.isLinux) return assetName == AppConstants.linuxReleaseAssetName;
     return false;
   }
 
@@ -89,8 +91,9 @@ class UpdateService {
     return dir;
   }
 
-  /// Downloads the release asset (.apk on Android, .zip on Windows),
-  /// reporting progress from 0.0-100.0. Returns the downloaded file. Any
+  /// Downloads the release asset (.apk on Android, .zip on Windows, .tar.gz
+  /// on Linux), reporting progress from 0.0-100.0. Returns the downloaded
+  /// file. Any
   /// failure (including cancellation) leaves no partial file behind.
   ///
   /// [isCancelled], if given, is polled between chunks; when it returns

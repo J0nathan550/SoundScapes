@@ -19,6 +19,12 @@ class AppConstants {
   /// `Compress-Archive` output name.
   static const String windowsReleaseAssetName = 'soundscapes-windows.zip';
 
+  /// Name of the Linux release asset built by .github/workflows/release.yml
+  /// — a tar.gz (not zip — it preserves the executable permission bit) of
+  /// the portable Release bundle. Must match that workflow's `tar` output
+  /// name.
+  static const String linuxReleaseAssetName = 'soundscapes-linux.tar.gz';
+
   static const Duration suggestionsDebounce = Duration(milliseconds: 300);
 
   static const List<Duration> sleepTimerPresets = [

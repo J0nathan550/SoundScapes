@@ -21,7 +21,16 @@ dependencies:
   just_audio_windows: ^0.2.3
   audio_service: ^0.18.19
   audio_service_win: ^0.0.3
+  # Linux's MPRIS (D-Bus) equivalent of audio_service_win's SMTC
+  # integration — see the AudioServiceMpris.init call in lib/main.dart.
+  audio_service_mpris: ^0.2.1
   audio_session: ^0.2.4
+  # Linux has no first-party just_audio implementation (just_audio's own
+  # pubspec only declares android/ios/macos/web) — just_audio_media_kit
+  # backs it with libmpv via media_kit instead. windows: false since
+  # just_audio_windows above already covers Windows.
+  just_audio_media_kit: ^2.1.0
+  media_kit_libs_linux: any
   rxdart: ^0.28.0
   cached_network_image: ^3.4.1
   shared_preferences: ^2.3.0

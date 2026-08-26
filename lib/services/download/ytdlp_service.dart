@@ -18,6 +18,7 @@ abstract class YtDlpService {
   factory YtDlpService() {
     if (Platform.isAndroid) return _AndroidYtDlpService();
     if (Platform.isWindows) return _WindowsYtDlpService();
+    if (Platform.isLinux) return _LinuxYtDlpService();
     throw UnsupportedError('YtDlpService has no implementation for this platform yet');
   }
 
@@ -124,6 +125,106 @@ class _WindowsYtDlpService implements YtDlpService {
       // Prefer m4a/AAC over the webm/opus yt-dlp would otherwise pick: it
       // plays natively via WinRT MediaPlayer, whereas opus-in-webm needs the
       // (not always installed) "Web Media Extensions" Windows feature.
+      '-f', 'bestaudio[ext=m4a]/bestaudio',
+      '-o', '$outputPathNoExt.%(ext)s',
+      // See the equivalent option in MainActivity.kt's handleDownloadAudio:
+      // avoids YouTube's SABR streaming, which withholds direct-URL formats
+      // without a PO Token, by using clients that don't require one.
+      '--extractor-args', 'youtube:player_client=default,android,tv',
+      '--no-playlist',
+      '--newline',
+      'https://www.youtube.com/watch?v=$videoId',
+    ]);
+    _runningProcesses[videoId] = process;
+
+    final stderrLines = <String>[];
+    final progressPattern = RegExp(r'\[download\]\s+([\d.]+)%');
+    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+      final match = progressPattern.firstMatch(line);
+      if (match != null) onProgress?.call(double.tryParse(match.group(1)!) ?? 0);
+    });
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(stderrLines.add);
+
+    try {
+      final exitCode = await process.exitCode;
+      if (exitCode != 0) {
+        throw Exception('yt-dlp exited with code $exitCode: ${stderrLines.join('\n')}');
+      }
+      final outputFile = await _findOutputFile(outputPathNoExt);
+      if (outputFile == null) {
+        throw Exception('yt-dlp produced no output file');
+      }
+      return YtDlpResult(filePath: outputFile.path, fileSizeBytes: await outputFile.length());
+    } finally {
+      _runningProcesses.remove(videoId);
+    }
+  }
+
+  Future<File?> _findOutputFile(String outputPathNoExt) async {
+    final dir = Directory(p.dirname(outputPathNoExt));
+    if (!await dir.exists()) return null;
+    final prefix = '${p.basename(outputPathNoExt)}.';
+    await for (final entity in dir.list()) {
+      if (entity is File && p.basename(entity.path).startsWith(prefix)) return entity;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> cancelDownload(String videoId) async {
+    _runningProcesses.remove(videoId)?.kill();
+  }
+}
+
+/// Linux implementation, mirroring [_WindowsYtDlpService] almost exactly —
+/// same standalone-binary-from-GitHub-releases approach, since there's no
+/// Android-style bundled binary for desktop here either. Differs only in the
+/// asset name (`yt-dlp_linux`, no `.exe`) and needing an explicit `chmod +x`
+/// after download, since downloaded files aren't executable by default and
+/// there's no pure-Dart equivalent of that.
+class _LinuxYtDlpService implements YtDlpService {
+  final Map<String, Process> _runningProcesses = {};
+
+  Future<File> _ensureBinary() async {
+    final supportDir = await getApplicationSupportDirectory();
+    final binDir = Directory(p.join(supportDir.path, 'bin'));
+    if (!await binDir.exists()) await binDir.create(recursive: true);
+    final file = File(p.join(binDir.path, 'yt-dlp'));
+    if (await file.exists()) return file;
+
+    final response = await http.get(
+      Uri.parse('https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest'),
+      headers: const {'Accept': 'application/vnd.github+json'},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('GitHub returned ${response.statusCode} while fetching yt-dlp');
+    }
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    final assets = (body['assets'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final asset = assets.cast<Map<String, dynamic>?>().firstWhere(
+      (a) => a?['name'] == 'yt-dlp_linux',
+      orElse: () => null,
+    );
+    if (asset == null) {
+      throw Exception('No yt-dlp_linux asset found in the latest yt-dlp release');
+    }
+    final bytes = await http.readBytes(Uri.parse(asset['browser_download_url'] as String));
+    await file.writeAsBytes(bytes, flush: true);
+    await Process.run('chmod', ['+x', file.path]);
+    return file;
+  }
+
+  @override
+  Future<YtDlpResult> downloadAudio({
+    required String videoId,
+    required String outputPathNoExt,
+    void Function(double percent)? onProgress,
+  }) async {
+    final binary = await _ensureBinary();
+    final process = await Process.start(binary.path, [
       '-f', 'bestaudio[ext=m4a]/bestaudio',
       '-o', '$outputPathNoExt.%(ext)s',
       // See the equivalent option in MainActivity.kt's handleDownloadAudio:

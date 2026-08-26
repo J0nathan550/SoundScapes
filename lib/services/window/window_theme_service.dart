@@ -3,11 +3,15 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 /// Pushes the app's current theme colors down to the native title bar on
-/// Windows, via the "soundscapes/window" channel (see flutter_window.cpp).
+/// Windows and Linux, via the "soundscapes/window" channel (see
+/// flutter_window.cpp and linux/runner/window_chrome.cc).
 ///
 /// Windows only exposes a colored title bar (DWMWA_CAPTION_COLOR) on Windows
 /// 11 22H2+; on older Windows the native side just applies dark/light mode
-/// and silently ignores the color, so this degrades gracefully.
+/// and silently ignores the color. Linux only has a GtkHeaderBar to color at
+/// all when the window manager renders one (GNOME/Wayland, per
+/// my_application.cc) — a plain WM-drawn title bar can't be recolored from
+/// app code. Both cases degrade gracefully.
 class WindowThemeService {
   static const _channel = MethodChannel('soundscapes/window');
 
@@ -16,7 +20,7 @@ class WindowThemeService {
     required Color text,
     required bool darkMode,
   }) async {
-    if (!Platform.isWindows) return;
+    if (!Platform.isWindows && !Platform.isLinux) return;
     try {
       await _channel.invokeMethod('setTitleBarColors', {
         'caption': caption.toARGB32(),

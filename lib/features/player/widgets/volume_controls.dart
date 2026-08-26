@@ -12,11 +12,12 @@ IconData _volumeIconFor(double volume) {
 
 void _setVolume(WidgetRef ref, double value) {
   ref.read(audioHandlerProvider).setVolume(value);
-  ref.read(settingsServiceProvider).setWindowsVolume(value);
+  ref.read(settingsServiceProvider).setDesktopVolume(value);
 }
 
-/// Windows-only volume control for the mini player: a speaker icon plus a
-/// narrow horizontal slider, kept well below the width of the seek bar.
+/// Desktop-only (Windows, Linux) volume control for the mini player: a
+/// speaker icon plus a narrow horizontal slider, kept well below the width
+/// of the seek bar.
 class VolumeSliderCompact extends ConsumerWidget {
   const VolumeSliderCompact({super.key, this.iconColor});
 

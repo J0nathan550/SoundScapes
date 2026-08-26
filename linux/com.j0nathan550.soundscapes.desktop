@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SoundScapes
+Comment=Search, stream, and download audio from YouTube
+Exec=soundscapes
+Icon=com.j0nathan550.soundscapes
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupWMClass=com.j0nathan550.soundscapes

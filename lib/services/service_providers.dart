@@ -18,6 +18,7 @@ import 'playback/playback_persistence_controller.dart';
 import 'playback/playback_repository.dart';
 import 'settings/settings_service.dart';
 import 'update/apk_installer.dart';
+import 'update/linux_update_installer.dart';
 import 'update/update_service.dart';
 import 'update/windows_update_installer.dart';
 import 'window/taskbar_progress_service.dart';
@@ -189,6 +190,9 @@ final apkInstallerProvider = Provider<ApkInstaller>((ref) => ApkInstaller());
 
 final windowsUpdateInstallerProvider =
     Provider<WindowsUpdateInstaller>((ref) => WindowsUpdateInstaller());
+
+final linuxUpdateInstallerProvider =
+    Provider<LinuxUpdateInstaller>((ref) => LinuxUpdateInstaller());
 
 final windowThemeServiceProvider =
     Provider<WindowThemeService>((ref) => WindowThemeService());

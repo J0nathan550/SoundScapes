@@ -157,8 +157,51 @@ jobs:
           path: soundscapes-windows.zip
           if-no-files-found: error
 
+  build-linux:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # libmpv-dev backs just_audio_media_kit's audio playback; the rest are
+      # for the native runner (tray icon, GTK) — see linux/CMakeLists.txt.
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libmpv-dev ninja-build
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Linux release
+        run: >
+          flutter build linux --release
+          --build-name=${{ needs.version.outputs.version }}
+          --build-number=${{ needs.version.outputs.build_number }}
+
+      # tar, not zip: it preserves the executable permission bit on the
+      # bundled binary, which zip doesn't reliably do (see
+      # lib/services/update/linux_update_installer.dart).
+      - name: Package Linux build
+        run: |
+          tar -czf soundscapes-linux.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: soundscapes-linux.tar.gz
+          if-no-files-found: error
+
   release:
-    needs: [version, build-android, build-windows]
+    needs: [version, build-android, build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download Android artifacts
@@ -173,6 +216,12 @@ jobs:
           name: windows-release
           path: windows-release
 
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: linux-release
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -183,3 +232,4 @@ jobs:
             android-release/**/app-release.apk
             android-release/**/app-release.aab
             windows-release/soundscapes-windows.zip
+            linux-release/soundscapes-linux.tar.gz

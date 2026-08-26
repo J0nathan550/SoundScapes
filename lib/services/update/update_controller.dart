@@ -100,6 +100,10 @@ class UpdateDownloadController extends Notifier<UpdateDownloadState> {
         // Extracts the update and relaunches the app; exits this process,
         // so control never returns here on success.
         await ref.read(windowsUpdateInstallerProvider).applyUpdate(file.path);
+      } else if (Platform.isLinux) {
+        // Same shape as the Windows installer above; exits this process on
+        // success too.
+        await ref.read(linuxUpdateInstallerProvider).applyUpdate(file.path);
       } else {
         // No explicit install-permission request here: firing the install
         // intent below already makes Android show its own "allow from this

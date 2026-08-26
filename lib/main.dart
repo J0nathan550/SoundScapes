@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_shell.dart';
@@ -15,6 +16,21 @@ import 'services/settings/settings_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // just_audio has no Linux implementation of its own; this backs it with
+  // libmpv via media_kit instead. Must run before the first AudioPlayer is
+  // constructed, i.e. before AudioService.init below builds the handler.
+  //
+  // No equivalent call is needed for audio_service's Linux/MPRIS side: unlike
+  // just_audio, audio_service_mpris declares itself as a proper federated
+  // dartPluginClass implementation for the linux platform (see its
+  // pubspec.yaml, identical in shape to audio_service_win's for windows), so
+  // Flutter's own tooling auto-registers it as AudioServicePlatform.instance
+  // — the pubspec dependency alone is sufficient, same as audio_service_win
+  // already works here with no explicit init call.
+  if (Platform.isLinux) {
+    JustAudioMediaKit.ensureInitialized(linux: true, windows: false);
+  }
 
   final audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
@@ -29,9 +45,9 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final settingsService = SettingsService(prefs);
 
-  if (Platform.isWindows) {
-    await audioHandler.setVolume(settingsService.windowsVolume);
-  } 
+  if (Platform.isWindows || Platform.isLinux) {
+    await audioHandler.setVolume(settingsService.desktopVolume);
+  }
 
   runApp(
     ProviderScope(
@@ -57,7 +73,7 @@ class MainApp extends ConsumerWidget {
     final lightTheme = AppTheme.light(seedColor, monochrome: monochrome);
     final darkTheme = AppTheme.dark(seedColor, monochrome: monochrome);
 
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isLinux) {
       final isDark = themeMode == ThemeMode.dark ||
           (themeMode == ThemeMode.system &&
               MediaQuery.platformBrightnessOf(context) == Brightness.dark);
