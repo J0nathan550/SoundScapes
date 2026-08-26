@@ -114,10 +114,24 @@ class PlaybackRepository {
     // Windows' just_audio backend (WinRT MediaPlaybackList) doesn't reliably
     // preserve which item is "current" when items are inserted before it —
     // in practice, inserting here while the tapped track is still playing
-    // makes playback jump back to the very first item in the list. Other
-    // platforms' players handle this fine, so only skip it on Windows;
-    // "skip previous" just won't have earlier tracks pre-loaded there.
-    if (Platform.isWindows) return;
+    // makes playback jump back to the very first item in the list.
+    //
+    // Linux (just_audio_media_kit -> media_kit, backed by libmpv) has its own
+    // unrelated but equally real problem with the same operation: inserting
+    // anywhere but the tail goes through just_audio_media_kit's
+    // concatenatingInsertAll (mediakit_player.dart), which calls
+    // Player.move(length, index) using the post-append playlist length as
+    // the "from" index — one past the item's actual position (length - 1).
+    // media_kit's own move() (native/player/real.dart) silently no-ops its
+    // Dart-side queue bookkeeping for that out-of-range index (a
+    // SplayTreeMap.remove miss) but still forwards the same out-of-range
+    // `playlist-move` command to mpv regardless, desyncing Dart's view of
+    // the queue from mpv's actual playback order — confirmed by reading
+    // both packages' source directly, not just inferred from symptoms.
+    //
+    // Android handles this fine, so only skip it on Windows/Linux; "skip
+    // previous" just won't have earlier tracks pre-loaded there.
+    if (Platform.isWindows || Platform.isLinux) return;
     for (var i = startIndex - 1; i >= 0; i--) {
       if (epoch != _playEpoch) return;
       try {
